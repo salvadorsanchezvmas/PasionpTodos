@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotización</title>
+    <style>
+        body {
+            color: #1F2F57;
+            background-color: #ffffff;
+            padding: 25px 15px;
+        }
+
+        td {
+            border: 1px solid #1F2F57;
+            text-align: center;
+            color: #000000;
+        }
+
+        th {
+            border: none;
+            background-color: #1F2F57;
+            color: #ffffff;
+        }
+
+        .clientdata {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    
+    <img alt="logo" width="178" height="69" data-sticky-width="82" data-sticky-height="40" src="https://autosalemaneslapaz.vpromo.club/cars-automobile/images/LogoAutosAlemanescolor.png">
+    <div style="display: flex; color: #000000; margin-top: 15px;">
+        <p>Autos Alemanes La paz S.A. de C.V.<br> Av. Technik 2040, Col. Automotriz,<br>C.P. 03210, CDMX,
+            Guanajuato<br>+52 222 333 0818<br>Email contacto@autosalemanes.com.mx</p>
+    </div>
+{{#each ids}}
+    <p style="position: absolute; color: #000000; right: 0; top: 0; padding: 20px;">ID: 00001 <br>Fecha: {{this.fecha}}</p>
+{{/each}}
+    <h2>Datos de Cliente</h2>
+{{#each client}}
+    <p class="clientdata" style="color: #000000;">
+        Nombre: {{this.name}}<br>
+        Teléfono: {{this.phone}}<br>
+        Email: {{this.email}}<br>
+    </p>
+{{/each}}
+    <h3>Información: </h3> 
+    
+    <br>
+
+
+    <table style="width:100%; margin-top:2rem">
+        <tr>
+            <th>Vehiculo</th>
+            <th>Modelo</th>
+            <th>Cantidad</th>
+            <th>Precio</th>
+            <th>Total</th>
+        </tr>
+        {{#each list}}
+        <tr>
+            <td>{{this.car}}</td>
+            <td>{{this.model}}</td>
+            <td>{{this.quantity}}</td>
+            <td>$ {{this.price}}</td>
+            <td>$ {{this.total}}</td>
+        </tr>
+        {{/each}}
+    </table>
+
+    <table style="width:100%; "> </table>
+    
+    <br>
+    <br>
+    
+    
+    <p style="color: #000000;">AL SOLICITAR ESTA COTIZACIÓN CONSTITUYE LA ACEPTACIÓN DE TODOS LOS TÉRMINOS Y CONDICIONES AQUÍ CONTENIDOS.</p>
+    <a href="https://autosalemaneslapaz.vpromo.club/" target="_blank">
+        <p>Términos y Condiciones</p>
+    </a>
+
+</body>
+
+</html>
