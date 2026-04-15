@@ -3,25 +3,29 @@
 // npm install -D @types/node
 
 import { config } from "dotenv";
-config({ path: ".env.dev" });
+config({ path: "tests/scripts/.env.test" });
 
+import { readFileSync } from "fs";
 import CHICKEN_CLASSIFIER_PROMPT from "./chicken-classifier-prompt.js";
-import IMAGE_BASE64 from "./image.js";
 
-const { GEMINI_API_KEY } = process.env;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 console.log(`GEMINI_API_KEY: `, GEMINI_API_KEY);
 
 const { GoogleGenAI, ThinkingLevel, Type } = await import("@google/genai");
 
 async function main() {
   const ai = new GoogleGenAI({
-    apiKey: process.env['GEMINI_API_KEY'],
+    apiKey: GEMINI_API_KEY,
   });
+
+  const imageBuffer = readFileSync("./tests/scripts/descarga.jpeg");
+  const imageBase64 = imageBuffer.toString("base64");
+
   const config = {
     thinkingConfig: {
       thinkingLevel: ThinkingLevel.LOW,
     },
-    responseMimeType: 'application/json',
+    responseMimeType: "application/json",
     responseSchema: {
       type: Type.OBJECT,
       required: ["is_valid"],
@@ -32,15 +36,15 @@ async function main() {
       },
     },
   };
-  const model = 'gemini-3.1-flash-lite-preview';
+  const model = "gemini-3.1-flash-lite-preview";
   const contents = [
     {
-      role: 'user',
+      role: "user",
       parts: [
         {
           inlineData: {
-            data: IMAGE_BASE64,
-            mimeType: 'image/jpeg',
+            data: imageBase64,
+            mimeType: "image/jpeg",
           },
         },
         {
@@ -55,7 +59,7 @@ async function main() {
     config,
     contents,
   });
-  let fileIndex = 0;
+
   for await (const chunk of response) {
     if (chunk.text) {
       console.log(chunk.text);
