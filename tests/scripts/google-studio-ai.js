@@ -9,17 +9,14 @@ import { readFileSync } from "fs";
 import CHICKEN_CLASSIFIER_PROMPT from "./chicken-classifier-prompt.js";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-console.log(`GEMINI_API_KEY: `, GEMINI_API_KEY);
+const GEMINI_MODEL = process.env.GEMINI_MODEL;
 
 const { GoogleGenAI, ThinkingLevel, Type } = await import("@google/genai");
 
-async function main() {
+async function main(imageBase64) {
   const ai = new GoogleGenAI({
     apiKey: GEMINI_API_KEY,
   });
-
-  const imageBuffer = readFileSync("./tests/scripts/descarga.jpeg");
-  const imageBase64 = imageBuffer.toString("base64");
 
   const config = {
     thinkingConfig: {
@@ -36,7 +33,7 @@ async function main() {
       },
     },
   };
-  const model = "gemini-3.1-flash-lite-preview";
+  const model = GEMINI_MODEL;
   const contents = [
     {
       role: "user",
@@ -67,4 +64,7 @@ async function main() {
   }
 }
 
-main();
+const imageBuffer = readFileSync("./tests/scripts/descarga.jpeg");
+const imageBase64 = imageBuffer.toString("base64");
+
+main(imageBase64);
