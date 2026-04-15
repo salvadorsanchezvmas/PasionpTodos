@@ -9,4 +9,4 @@ const CHICKEN_CLASSIFIER_PROMPT = `
 
 `;
 
-module.exports = CHICKEN_CLASSIFIER_PROMPT;
+export default CHICKEN_CLASSIFIER_PROMPT;

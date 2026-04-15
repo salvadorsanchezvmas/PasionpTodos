@@ -4,6 +4,9 @@
 import { config } from "dotenv";
 config({ path: ".env.dev" });
 
+import CHICKEN_CLASSIFIER_PROMPT from "./chicken-classifier-prompt.js";
+import IMAGE_BASE64 from "./image.js";
+
 const { GEMINI_API_KEY } = process.env;
 console.log(`GEMINI_API_KEY: `, GEMINI_API_KEY);
 
@@ -24,7 +27,13 @@ async function main() {
       role: "user",
       parts: [
         {
-          text: `how can i send  you an image heree??`,
+          text: CHICKEN_CLASSIFIER_PROMPT,
+        },
+        {
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: IMAGE_BASE64,
+          },
         },
       ],
     },
