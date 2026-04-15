@@ -5,6 +5,7 @@ node_modules/
 .env
 .env.local
 .env.*.local
+tests/scripts/.env.test
 
 # Logs
 logs/
