@@ -24,7 +24,7 @@ async function main() {
       role: "user",
       parts: [
         {
-          text: `hello, how can you help me?`,
+          text: `how can i send  you an image heree??`,
         },
       ],
     },
