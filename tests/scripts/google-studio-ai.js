@@ -2,11 +2,12 @@
 // npm install @google/genai mime dotenv
 
 import { config } from "dotenv";
-config({ path: "../../.env" });
+config({ path: ".env.dev" });
 
-console.log(process.env);
+const { GEMINI_API_KEY } = process.env;
+console.log(`GEMINI_API_KEY: `, GEMINI_API_KEY);
 
-import { GoogleGenAI, ThinkingLevel } from "@google/genai";
+const { GoogleGenAI, ThinkingLevel } = await import("@google/genai");
 
 async function main() {
   const ai = new GoogleGenAI({
