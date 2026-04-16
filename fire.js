@@ -7,6 +7,7 @@ import { getFirestore, Timestamp, FieldValue, Filter } from 'firebase-admin/fire
 import nodemailer from "nodemailer";
 import { Storage } from '@google-cloud/storage';
 import axios from 'axios';
+import { isValidImage } from './src/services/is_valid_image.js';
 
 const pdf = require("pdf-creator-node");
 
@@ -343,44 +344,59 @@ export const checkImage = async (idwhatsapp, image64, mimeType) => {
             };
         }
 
-        console.log(`User ${idwhatsapp} found. Calling Google Vision API...`);
+        console.log(`User ${idwhatsapp} found. Validating image...`);
 
-        // 2. Call Google Vision API with base64 image
-        const visionResponse = await axios.post(
-            `https://vision.googleapis.com/v1/images:annotate?key=${VISION_API_KEY}`,
-            {
-                requests: [
-                    {
-                        image: { content: image64 },
-                        features: [{ type: 'LABEL_DETECTION', maxResults: 10 }]
-                    }
-                ]
-            },
-            { headers: { 'Content-Type': 'application/json' } }
-        );
+        // 2. Validate image using AI classifier
+        const validationResult = await isValidImage(image64, mimeType);
 
-        const labels = visionResponse.data?.responses?.[0]?.labelAnnotations || [];
-        console.log("Vision labels:", labels.map(l => l.description));
+        console.log("AI Validation result:", validationResult);
 
-        // 3. Check if any label contains the word 'chicken' (case-insensitive, trim spaces)
-        const isChicken = labels.some(
-            l => l.description.trim().toLowerCase().includes('chicken')
-        );
-
-        if (!isChicken) {
-            console.log("No chicken label detected in image.");
+        if (validationResult.is_valid !== "true") {
+            console.log("Image validation failed:", validationResult.reason);
             return {
                 stat: "error",
-                data: { message: "Image does not appear to contain chicken." }
+                data: { message: validationResult.reason || "Image does not appear to contain chicken." }
             };
         }
 
-        console.log("Chicken detected! Uploading image to Google Cloud Storage...");
+//         // 2. Call Google Vision API with base64 image
+//         const visionResponse = await axios.post(
+//             `https://vision.googleapis.com/v1/images:annotate?key=${VISION_API_KEY}`,
+//             {
+//                 requests: [
+//                     {
+//                         image: { content: image64 },
+//                         features: [{ type: 'LABEL_DETECTION', maxResults: 10 }]
+//                     }
+//                 ]
+//             },
+//             { headers: { 'Content-Type': 'application/json' } }
+//         );
+// 
+//         const labels = visionResponse.data?.responses?.[0]?.labelAnnotations || [];
+//         console.log("Vision labels:", labels.map(l => l.description));
+// 
+//         // 3. Check if any label contains the word 'chicken' (case-insensitive, trim spaces)
+//         const isChicken = labels.some(
+//             l => l.description.trim().toLowerCase().includes('chicken')
+//         );
+// 
+//         if (!isChicken) {
+//             console.log("No chicken label detected in image.");
+//             return {
+//                 stat: "error",
+//                 data: { message: "Image does not appear to contain chicken." }
+//             };
+//         }
+//         console.log("Chicken detected! Uploading image to Google Cloud Storage..."); 
 
-        // 4. Upload base64 image to Google Cloud Storage
+        console.log("Image validated! Uploading image to Google Cloud Storage...");
+
+        // // 4. Upload base64 image to Google Cloud Storage
         const extension = mimeType.split('/')[1] || 'jpg';
         const fileName = `album/${idwhatsapp}/${Date.now()}.${extension}`;
         const imageBuffer = Buffer.from(image64, 'base64');
+        // // 5. Update user album with stamp, url and timestamp
 
         const bucket = storage.bucket(BUCKET_NAME);
         const file = bucket.file(fileName);
