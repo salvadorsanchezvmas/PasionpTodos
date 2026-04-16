@@ -351,7 +351,7 @@ export const checkImage = async (idwhatsapp, image64, mimeType) => {
 
         console.log("AI Validation result:", validationResult);
 
-        if (validationResult.is_valid !== "true") {
+        if (validationResult.is_valid !== true) {
             console.log("Image validation failed:", validationResult.reason);
             return {
                 stat: "error",

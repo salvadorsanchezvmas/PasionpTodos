@@ -12,12 +12,12 @@ const GEMINI_MODEL = process.env.GEMINI_MODEL;
  *
  * @param {string} imageBase64 - Base64 encoded image data
  * @param {string} mimeType - MIME type of the image (e.g., "image/jpeg", "image/png")
- * @returns {Promise<{is_valid: string, reason: string}>} Object containing validation result and reason
+ * @returns {Promise<{is_valid: boolean, reason: string}>} Object containing validation result and reason
  * @throws {Error} If API key or model is not configured, or if the API call fails
  *
  * @example
  * const result = await isValidImage(base64Image, "image/jpeg");
- * console.log(result.is_valid); // "true" or "false"
+ * console.log(result.is_valid); // true or false
  * console.log(result.reason);   // Brief summary of the validation
  */
 export async function isValidImage(imageBase64, mimeType) {
@@ -43,7 +43,7 @@ export async function isValidImage(imageBase64, mimeType) {
       required: ["is_valid", "reason"],
       properties: {
         is_valid: {
-          type: Type.STRING,
+          type: Type.BOOLEAN,
         },
         reason: {
           type: Type.STRING,
