@@ -30,6 +30,9 @@ async function main(imageBase64) {
         is_valid: {
           type: Type.BOOLEAN,
         },
+        reason: {
+          type: Type.STRING,
+        },
       },
     },
   };
@@ -64,7 +67,7 @@ async function main(imageBase64) {
   }
 }
 
-const imageBuffer = readFileSync("./tests/scripts/descarga.jpeg");
+const imageBuffer = readFileSync("./tests/scripts/image.png");
 const imageBase64 = imageBuffer.toString("base64");
 
 main(imageBase64);
