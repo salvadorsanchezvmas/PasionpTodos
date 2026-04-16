@@ -19,7 +19,10 @@ To return \`true\`, the image MUST meet ALL of the following positive constraint
 Do not provide any explanations, conversational text, or markdown code blocks (\`\`\`). Return ONLY a strict, valid JSON object containing a single boolean key.
 
 **Expected Output Format:**
-{"is_valid_chicken_dish": true} OR {"is_valid_chicken_dish": false}
+{
+    "is_valid": "true"/"false",
+    "reason": "small summarize",
+}
 `;
 
 export default CHICKEN_CLASSIFIER_PROMPT;
