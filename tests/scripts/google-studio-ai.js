@@ -67,6 +67,7 @@ async function main(imageBase64) {
   }
 }
 
+// set the apth of the image
 const imageBuffer = readFileSync("./tests/scripts/image.png");
 const imageBase64 = imageBuffer.toString("base64");
 
