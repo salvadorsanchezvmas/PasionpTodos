@@ -16,9 +16,9 @@ import cors from "cors";
 const app = express();
 app.use(express.json());
 app.use(cors());
-const { WEBHOOK_VERIFY_TOKEN="pollohook2026", GRAPH_API_TOKEN="EAARsh9tdbmoBPJb4q5jBBRaehLIjIfTw2CGelJBTZCuDwkSwBdf5nPWc62bb3hEJ3sPZA487zAAhuDFkJz0ZCYOterbeuKyR7JDBTLZATIhTh0UHKpZAOPL37mXCyXbIQwwHmUwzaPHW2aJQAhJeZCLlRCXxkRM1MNBFfmQeKggfguJdhhSidAXa78LlBdZAQZDZD", PORT="5200" } = process.env;
+const { WEBHOOK_VERIFY_TOKEN="pollohook2026", GRAPH_API_TOKEN="EAARsh9tdbmoBPJb4q5jBBRaehLIjIfTw2CGelJBTZCuDwkSwBdf5nPWc62bb3hEJ3sPZA487zAAhuDFkJz0ZCYOterbeuKyR7JDBTLZATIhTh0UHKpZAOPL37mXCyXbIQwwHmUwzaPHW2aJQAhJeZCLlRCXxkRM1MNBFfmQeKggfguJdhhSidAXa78LlBdZAQZDZD", PORT="5100" } = process.env;
 
-app.post("/pollo/phook", async (req, res) => {
+app.post("/dev/phook", async (req, res) => {
   console.log("Incoming webhook message:", JSON.stringify(req.body, null, 2));
 
   // check if the webhook contains a message
@@ -106,7 +106,7 @@ app.post("/pollo/phook", async (req, res) => {
 
 // accepts GET requests at the /webhook endpoint. You need this URL to setup webhook initially.
 // info on verification request payload: https://developers.facebook.com/docs/graph-api/webhooks/getting-started#verification-requests
-app.get("/pollo/phook", (req, res) => {
+app.get("/dev/phook", (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
@@ -122,7 +122,7 @@ app.get("/pollo/phook", (req, res) => {
   }
 });
 
-app.post("/pollo/saveusr", async (req, res) => {
+app.post("/dev/saveusr", async (req, res) => {
     const conn = req.body;
     try {    
       const screenshot = await saveUser(conn);
@@ -135,7 +135,7 @@ app.post("/pollo/saveusr", async (req, res) => {
   }
 });
 
-app.get("/pollo/", (req, res) => {
+app.get("/dev/", (req, res) => {
   res.send(`<pre>Nothing to see here.
 Checkout README.md to start.</pre>`);
 });
