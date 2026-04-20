@@ -16,9 +16,9 @@ import cors from "cors";
 const app = express();
 app.use(express.json());
 app.use(cors());
-const { WEBHOOK_VERIFY_TOKEN="pollohook2026", GRAPH_API_TOKEN="EAAeagvTCMkgBO29NGvkR1vAWlZCcJYiL8xV1BldE0pirZBMcVKgoSZA4nMH3wCy1gGSacRWIXK3bCzZCqfP4U0I9ni4sZB91GdNI167LpszEqydKdzLp8KD2T6aZAYswZA0Shcn2eHh0DpVMhi1ZAZCztU0dfGcHy2ZA5zZCWxZByDLqyDRCIWZAEnZAmU9oOYh45MBAZDZD", PORT="5200" } = process.env;
+const { WEBHOOK_VERIFY_TOKEN="pollohook2026", GRAPH_API_TOKEN="EAARsh9tdbmoBPJb4q5jBBRaehLIjIfTw2CGelJBTZCuDwkSwBdf5nPWc62bb3hEJ3sPZA487zAAhuDFkJz0ZCYOterbeuKyR7JDBTLZATIhTh0UHKpZAOPL37mXCyXbIQwwHmUwzaPHW2aJQAhJeZCLlRCXxkRM1MNBFfmQeKggfguJdhhSidAXa78LlBdZAQZDZD", PORT="5100" } = process.env;
 
-app.post("/phook", async (req, res) => {
+app.post("/dev/phook", async (req, res) => {
   console.log("Incoming webhook message:", JSON.stringify(req.body, null, 2));
 
   // check if the webhook contains a message
@@ -33,32 +33,51 @@ app.post("/phook", async (req, res) => {
       console.log("Image message received with media ID:", mediaId);
       
       try {
-        // Fetch image metadata
-        const imageMetadataResponse = await axios.get(
-          `https://graph.facebook.com/v18.0/${mediaId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${GRAPH_API_TOKEN}`,
-            },
-            params: {
-              phone_number_id: business_phone_number_id,
-            }
-          }
-        );
-        
-        console.log("Image metadata:", imageMetadataResponse.data);
-        const imageUrl = imageMetadataResponse.data.url;
-        
-        // Download image and convert to base64
-        const imageResponse = await axios.get(imageUrl, {
-          responseType: "arraybuffer",
+        // Step 1: Fetch image metadata with phone_number_id const axios = require('axios');
+
+        const metadataConfig = {
+          method: 'get',
+          maxBodyLength: Infinity,
+          url: `https://graph.facebook.com/v23.0/${mediaId}?phone_number_id=${business_phone_number_id}`,
           headers: {
-            Authorization: `Bearer ${GRAPH_API_TOKEN}`,
+            'Authorization': `Bearer ${GRAPH_API_TOKEN}`
           }
-        });
+        };
+        const imageMetadataResponse = await axios.request(metadataConfig);
+        
+        console.log("Step 1 - Image metadata:", imageMetadataResponse.data.url);
+        const mediaUrl = imageMetadataResponse.data.url;
+        const mimeType = imageMetadataResponse.data.mime_type || "image/jpeg";
+        
+        // Step 2: Fetch the actual download URL by passing the media URL (URL-encoded)
+        const encodedUrl = encodeURIComponent(mediaUrl);
+        console.log("Encoded URL:",encodedUrl);
+        const downloadUrlConfig = {
+          method: 'get',
+          maxBodyLength: Infinity,
+          url: `https://graph.facebook.com/v19.0/${encodedUrl}`,
+          headers: {
+            'Authorization': `Bearer ${GRAPH_API_TOKEN}`
+          }
+        };
+        const downloadUrlResponse = await axios.request(downloadUrlConfig);
+        
+        console.log("Step 2 - Download URL response:", downloadUrlResponse.data);
+        const downloadUrl = downloadUrlResponse.data.id || mediaUrl;
+        console.log("downloaded URL:",downloadUrl);
+        // Step 3: Download the actual image binary
+        const imageConfig = {
+          method: 'get',
+          maxBodyLength: Infinity,
+          url: downloadUrl,
+          responseType: 'arraybuffer',
+          headers: {
+            'Authorization': `Bearer ${GRAPH_API_TOKEN}`
+          }
+        };
+        const imageResponse = await axios.request(imageConfig);
         
         const base64Image = Buffer.from(imageResponse.data).toString("base64");
-        const mimeType = imageMetadataResponse.data.mime_type || "image/jpeg";
 
         if (senderWhatsAppId) {
           const imageValidationResult = await checkImage(senderWhatsAppId, base64Image, mimeType);
@@ -69,7 +88,7 @@ app.post("/phook", async (req, res) => {
         
         console.log("Image converted to base64. Length:", base64Image.length);
         console.log("MIME type:", mimeType);
-        console.log("Base64 Image Data:", `data:${mimeType};base64,${base64Image}`);
+        //console.log("Base64 Image Data:", `data:${mimeType};base64,${base64Image}`);
         
         // You can now use the base64Image as needed:
         // - Send to another service
@@ -87,7 +106,7 @@ app.post("/phook", async (req, res) => {
 
 // accepts GET requests at the /webhook endpoint. You need this URL to setup webhook initially.
 // info on verification request payload: https://developers.facebook.com/docs/graph-api/webhooks/getting-started#verification-requests
-app.get("/phook", (req, res) => {
+app.get("/dev/phook", (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
@@ -103,7 +122,7 @@ app.get("/phook", (req, res) => {
   }
 });
 
-app.post("/pollo/saveusr", async (req, res) => {
+app.post("/dev/saveusr", async (req, res) => {
     const conn = req.body;
     try {    
       const screenshot = await saveUser(conn);
@@ -116,7 +135,7 @@ app.post("/pollo/saveusr", async (req, res) => {
   }
 });
 
-app.get("/", (req, res) => {
+app.get("/dev/", (req, res) => {
   res.send(`<pre>Nothing to see here.
 Checkout README.md to start.</pre>`);
 });
