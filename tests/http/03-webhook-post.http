@@ -1,0 +1,105 @@
+### Webhook POST - /pollo/phook (text message - no image processing)
+POST http://localhost:5200/pollo/phook
+Content-Type: application/json
+
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "123456789",
+      "changes": [
+        {
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "15551234567",
+              "phone_number_id": "123456789"
+            },
+            "contacts": [
+              {
+                "profile": {
+                  "name": "Test User"
+                },
+                "wa_id": "15551234567"
+              }
+            ],
+            "messages": [
+              {
+                "from": "15551234567",
+                "id": "wamid.xxx",
+                "timestamp": "1234567890",
+                "type": "text",
+                "text": {
+                  "body": "Hello World"
+                }
+              }
+            ]
+          },
+          "field": "messages"
+        }
+      ]
+    }
+  ]
+}
+
+> {%
+    client.test("Response status is 200 OK", function() {
+        client.assert(response.status === 200, "Expected 200");
+    });
+%}
+
+### Webhook POST - /pollo/phook (empty body)
+POST http://localhost:5200/pollo/phook
+Content-Type: application/json
+
+{}
+
+> {%
+    client.test("Response status is 200 OK for empty body", function() {
+        client.assert(response.status === 200, "Expected 200");
+    });
+%}
+
+### Webhook POST - /pollo/phook (image message - requires GRAPH_API_TOKEN configured)
+POST http://localhost:5200/pollo/phook
+Content-Type: application/json
+
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "123456789",
+      "changes": [
+        {
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "15551234567",
+              "phone_number_id": "123456789"
+            },
+            "messages": [
+              {
+                "from": "15551234567",
+                "id": "wamid.xxx",
+                "timestamp": "1234567890",
+                "type": "image",
+                "image": {
+                  "id": "media_id_123",
+                  "mime_type": "image/jpeg",
+                  "sha256": "abc123"
+                }
+              }
+            ]
+          },
+          "field": "messages"
+        }
+      ]
+    }
+  ]
+}
+
+> {%
+    client.test("Response status is 200 OK for image message", function() {
+        client.assert(response.status === 200, "Expected 200");
+    });
+%}
