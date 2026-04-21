@@ -1,0 +1,14 @@
+### Health Check - GET /pollo/
+GET http://localhost:5200/pollo/
+
+> {%
+    client.test("Response status is 200", function() {
+        client.assert(response.status === 200, "Expected 200");
+    });
+    client.test("Response is HTML/preformatted text", function() {
+        client.assert(response.contentType.mimeType === "text/html", "Expected text/html");
+    });
+    client.test("Response contains expected text", function() {
+        client.assert(response.body.includes("Nothing to see here"), "Expected 'Nothing to see here' in body");
+    });
+%}

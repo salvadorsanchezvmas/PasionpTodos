@@ -1,0 +1,29 @@
+### Webhook Verification - GET /pollo/phook (valid token)
+GET http://localhost:5200/pollo/phook?hub.mode=subscribe&hub.verify_token=pollohook2026&hub.challenge=challenge123
+
+> {%
+    client.test("Response status is 200", function() {
+        client.assert(response.status === 200, "Expected 200");
+    });
+    client.test("Response body matches challenge", function() {
+        client.assert(response.body === "challenge123", "Expected challenge123");
+    });
+%}
+
+### Webhook Verification - GET /pollo/phook (invalid token - should return 403)
+GET http://localhost:5200/pollo/phook?hub.mode=subscribe&hub.verify_token=wrongtoken&hub.challenge=challenge123
+
+> {%
+    client.test("Response status is 403 for invalid token", function() {
+        client.assert(response.status === 403, "Expected 403");
+    });
+%}
+
+### Webhook Verification - GET /pollo/phook (wrong mode - should return 403)
+GET http://localhost:5200/pollo/phook?hub.mode=unsubscribe&hub.verify_token=pollohook2026&hub.challenge=challenge123
+
+> {%
+    client.test("Response status is 403 for wrong mode", function() {
+        client.assert(response.status === 403, "Expected 403");
+    });
+%}

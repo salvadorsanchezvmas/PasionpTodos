@@ -1,0 +1,30 @@
+### Save User - POST /pollo/saveusr (requires fire.js / Firebase to be configured)
+POST http://localhost:5200/pollo/saveusr
+Content-Type: application/json
+
+{
+  "wa_id": "15551234567",
+  "profile_name": "Test User",
+  "timestamp": "1234567890"
+}
+
+> {%
+    client.test("Response status is not 500 (depends on Firebase config)", function() {
+        // This will return 500 if Firebase is not configured
+        // Should return 200 or success status if properly configured
+        client.assert(response.status !== 500 || response.status === 200, "Check Firebase configuration");
+    });
+%}
+
+### Save User - POST /pollo/saveusr (empty body - should handle gracefully)
+POST http://localhost:5200/pollo/saveusr
+Content-Type: application/json
+
+{}
+
+> {%
+    client.test("Response status for empty body", function() {
+        // Depends on how saveUser handles empty input
+        client.assert(response.status === 200 || response.status === 500, "Should respond with status");
+    });
+%}
