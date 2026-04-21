@@ -16,7 +16,7 @@ import pdf from "pdf-creator-node";
 
 const storage = new Storage({
     projectId: 'bucketpollo',
-    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS || 'bucketpollo-100fff8cef16.json'
+    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS || 'bucketpollo-4485b9c7830c.json'
 });
 const BUCKET_NAME = 'polloparatodos-album';
 const VISION_API_KEY = 'AIzaSyC2-jDosZwAyixNiDlKxKjvvRp-JGV3j2I';
@@ -34,7 +34,7 @@ const transporter = nodemailer.createTransport({
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const serviceAccount = JSON.parse(
-    await import('fs').then(fs => fs.promises.readFile(path.resolve(__dirname, 'polloparatodos-26402-firebase-adminsdk-fbsvc-4871c8105c.json'), 'utf8'))
+    await import('fs').then(fs => fs.promises.readFile(path.resolve(__dirname, 'polloparatodos-26402-firebase-adminsdk-fbsvc-6bebf0b7ae.json'), 'utf8'))
 );
 
 if (!getApps().length) {
