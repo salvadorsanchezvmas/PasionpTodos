@@ -3,11 +3,20 @@ import { config } from 'dotenv';
 config();
 
 const ENV_VARS = {
+  // ─────────────────────────────────────
+  // port
+  // ─────────────────────────────────────
   WEBHOOK_VERIFY_TOKEN: process.env.WEBHOOK_VERIFY_TOKEN || "pollohook2026",
   GRAPH_API_TOKEN: process.env.GRAPH_API_TOKEN || "EAARsh9tdbmoBPJb4q5jBBRaehLIjIfTw2CGelJBTZCuDwkSwBdf5nPWc62bb3hEJ3sPZA487zAAhuDFkJz0ZCYOterbeuKyR7JDBTLZATIhTh0UHKpZAOPL37mXCyXbIQwwHmUwzaPHW2aJQAhJeZCLlRCXxkRM1MNBFfmQeKggfguJdhhSidAXa78LlBdZAQZDZD",
   PORT: process.env.PORT || "5200",
+  // ─────────────────────────────────────
+  // gemini
+  // ─────────────────────────────────────
   GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   GEMINI_MODEL: process.env.GEMINI_MODEL,
+  // ─────────────────────────────────────
+  // firebase
+  // ─────────────────────────────────────
   FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
   FIREBASE_PRIVATE_KEY_ID: process.env.FIREBASE_PRIVATE_KEY_ID,
   FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY,
@@ -18,6 +27,9 @@ const ENV_VARS = {
   FIREBASE_AUTH_PROVIDER_X509_CERT_URL: process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
   FIREBASE_CLIENT_X509_CERT_URL: process.env.FIREBASE_CLIENT_X509_CERT_URL,
   FIREBASE_UNIVERSE_DOMAIN: process.env.FIREBASE_UNIVERSE_DOMAIN,
+  // ─────────────────────────────────────
+  // bucket
+  // ─────────────────────────────────────
   BUCKET_PROJECT_ID: process.env.BUCKET_PROJECT_ID,
   BUCKET_PRIVATE_KEY_ID: process.env.BUCKET_PRIVATE_KEY_ID,
   BUCKET_PRIVATE_KEY: process.env.BUCKET_PRIVATE_KEY,
@@ -27,7 +39,12 @@ const ENV_VARS = {
   BUCKET_TOKEN_URI: process.env.BUCKET_TOKEN_URI,
   BUCKET_AUTH_PROVIDER_X509_CERT_URL: process.env.BUCKET_AUTH_PROVIDER_X509_CERT_URL,
   BUCKET_CLIENT_X509_CERT_URL: process.env.BUCKET_CLIENT_X509_CERT_URL,
-  BUCKET_UNIVERSE_DOMAIN: process.env.BUCKET_UNIVERSE_DOMAIN
+  BUCKET_UNIVERSE_DOMAIN: process.env.BUCKET_UNIVERSE_DOMAIN,
+  // ─────────────────────────────────────
+  // email
+  // ─────────────────────────────────────
+  EMAIL_USER: process.env.EMAIL_USER,
+  EMAIL_PASS: process.env.EMAIL_PASS
 };
 
 export default ENV_VARS;
