@@ -1,11 +1,11 @@
-import "dotenv/config";
+import ENV_VARS from "./config/ENV_VARS.js";
 
 import { GoogleGenAI, ThinkingLevel, Type } from "@google/genai";
 
 import CHICKEN_CLASSIFIER_PROMPT from "./chicken-classifier-prompt.js";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL = process.env.GEMINI_MODEL;
+const GEMINI_API_KEY = ENV_VARS.GEMINI_API_KEY;
+const GEMINI_MODEL = ENV_VARS.GEMINI_MODEL;
 
 /**
  * Validates whether an image contains a valid chicken dish prepared for human consumption.

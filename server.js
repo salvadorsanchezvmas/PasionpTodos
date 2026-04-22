@@ -6,12 +6,14 @@
  */
 
 import 'dotenv/config'
-console.log(process.env)
+// console.log(process.env)
+
 
 import express from "express";
 import axios from "axios";
 import { saveUser, checkImage } from "./fire.js";
 import cors from "cors";
+import ENV_VARS from './src/services/config/ENV_VARS.js';
 
 const app = express();
 app.use(express.json());
