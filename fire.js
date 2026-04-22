@@ -13,10 +13,25 @@ import axios from 'axios';
 import { isValidImage } from './src/services/is_valid_image.js';
 
 import pdf from "pdf-creator-node";
+import ENV_VARS from './src/services/config/ENV_VARS.js';
+
+const bucketCredentials = {
+    type: "service_account",
+    project_id: ENV_VARS.BUCKET_PROJECT_ID,
+    private_key_id: ENV_VARS.BUCKET_PRIVATE_KEY_ID,
+    private_key: ENV_VARS.BUCKET_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    client_email: ENV_VARS.BUCKET_CLIENT_EMAIL,
+    client_id: ENV_VARS.BUCKET_CLIENT_ID,
+    auth_uri: ENV_VARS.BUCKET_AUTH_URI,
+    token_uri: ENV_VARS.BUCKET_TOKEN_URI,
+    auth_provider_x509_cert_url: ENV_VARS.BUCKET_AUTH_PROVIDER_X509_CERT_URL,
+    client_x509_cert_url: ENV_VARS.BUCKET_CLIENT_X509_CERT_URL,
+    universe_domain: ENV_VARS.BUCKET_UNIVERSE_DOMAIN
+};
 
 const storage = new Storage({
-    projectId: 'bucketpollo',
-    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS || 'bucketpollo-4485b9c7830c.json'
+    projectId: ENV_VARS.BUCKET_PROJECT_ID,
+    credentials: bucketCredentials
 });
 const BUCKET_NAME = 'polloparatodos-album';
 const VISION_API_KEY = 'AIzaSyC2-jDosZwAyixNiDlKxKjvvRp-JGV3j2I';
@@ -26,21 +41,31 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: "hola@polloparatodos.com",
-        pass: "V#Iio53([6dwA[+M"
+        user: ENV_VARS.EMAIL_USER,
+        pass: ENV_VARS.EMAIL_PASS
     }
 });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const serviceAccount = JSON.parse(
-    await import('fs').then(fs => fs.promises.readFile(path.resolve(__dirname, 'polloparatodos-26402-firebase-adminsdk-fbsvc-6bebf0b7ae.json'), 'utf8'))
-);
+const firebaseCredentials = {
+    type: "service_account",
+    project_id: ENV_VARS.FIREBASE_PROJECT_ID,
+    private_key_id: ENV_VARS.FIREBASE_PRIVATE_KEY_ID,
+    private_key: ENV_VARS.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    client_email: ENV_VARS.FIREBASE_CLIENT_EMAIL,
+    client_id: ENV_VARS.FIREBASE_CLIENT_ID,
+    auth_uri: ENV_VARS.FIREBASE_AUTH_URI,
+    token_uri: ENV_VARS.FIREBASE_TOKEN_URI,
+    auth_provider_x509_cert_url: ENV_VARS.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
+    client_x509_cert_url: ENV_VARS.FIREBASE_CLIENT_X509_CERT_URL,
+    universe_domain: ENV_VARS.FIREBASE_UNIVERSE_DOMAIN
+};
 
 if (!getApps().length) {
     initializeApp({
-        credential: cert(serviceAccount),
-        projectId: 'polloparatodos-26402',
+        credential: cert(firebaseCredentials),
+        projectId: ENV_VARS.FIREBASE_PROJECT_ID,
         databaseURL: 'https://polloparatodos-26402.firebaseio.com'
     });
 }
