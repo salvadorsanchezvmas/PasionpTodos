@@ -2,7 +2,8 @@ import ENV_VARS from "./config/ENV_VARS.js";
 
 import { GoogleGenAI, ThinkingLevel, Type } from "@google/genai";
 
-import CHICKEN_CLASSIFIER_PROMPT from "./chicken-classifier-prompt.js";
+// import CHICKEN_CLASSIFIER_PROMPT from "./chicken-classifier-prompt.js";
+import CHICKEN_CLASSIFIER_PROMPT from "./chicken-classifier-prompt.v1.js";
 
 const GEMINI_API_KEY = ENV_VARS.GEMINI_API_KEY;
 const GEMINI_MODEL = ENV_VARS.GEMINI_MODEL;
