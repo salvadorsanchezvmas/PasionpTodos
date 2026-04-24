@@ -41,10 +41,14 @@ export async function isValidImage(imageBase64, mimeType) {
     responseMimeType: "application/json",
     responseSchema: {
       type: Type.OBJECT,
-      required: ["is_valid", "reason"],
+      required: ["is_valid", "tag", "reason"],
       properties: {
         is_valid: {
           type: Type.BOOLEAN,
+        },
+        tag: {
+          type: Type.STRING,
+          enum: ["VALID", "NOT_FOOD_OR_CHICKEN", "STOCK_OR_INTERNET_IMAGERY", "AI_GENERATED_OR_MANIPULATED", "ADVERTISEMENTS_OR_COMMERCIAL_DISPLAYS", "LIVE_ANIMALS"],
         },
         reason: {
           type: Type.STRING,
