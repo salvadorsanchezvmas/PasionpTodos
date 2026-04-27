@@ -25,9 +25,9 @@ export const getLastNMsgs = async (idwhatsapp, lastMsgs) => {
     console.log(`logsArray: `, logsArray);
 
     // Get only the last N entries added
-    const slicedLogs = logsArray.slice(-lastMsgs);
+    // const slicedLogs = logsArray.slice(-lastMsgs);
 
-    slicedLogs.forEach((log) => {
+    logsArray.forEach((log) => {
       lastNLogs.push({
         msg_to_dev: log.msg_to_dev || "",
         msg_to_user: log.msg_to_user || "",
