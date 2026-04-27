@@ -4,15 +4,14 @@ describe("isValidImage", () => {
   let isValidImage;
   let mockGenerateContentStream;
 
-  beforeEach(async () => {
-    // Set environment variables BEFORE importing the module
-    process.env.GEMINI_API_KEY = "test-api-key";
-    process.env.GEMINI_MODEL = "test-model";
-
-    // Clear module cache to allow re-import with new env vars
+  const setupEnvAndImport = async (apiKey, model) => {
+    // Clear module cache
     jest.resetModules();
 
-    // Mock @google/genai before importing the module
+    // Mock dotenv/config to prevent actual .env loading
+    jest.unstable_mockModule("dotenv/config", () => ({}));
+
+    // Mock @google/genai
     mockGenerateContentStream = jest.fn();
     jest.unstable_mockModule("@google/genai", () => ({
       GoogleGenAI: jest.fn().mockImplementation(() => ({
@@ -28,24 +27,43 @@ describe("isValidImage", () => {
       },
     }));
 
-    // Mock dotenv/config to do nothing (prevent actual .env loading)
-    jest.unstable_mockModule("dotenv/config", () => ({}));
-
     // Mock the prompt module
     jest.unstable_mockModule("../../src/services/chicken-classifier-prompt.js", () => ({
       default: "Test prompt",
     }));
 
+    // Set environment variables
+    if (apiKey !== undefined) {
+      process.env.GEMINI_API_KEY = apiKey;
+    }
+    if (model !== undefined) {
+      process.env.GEMINI_MODEL = model;
+    }
+
+    // Mock ENV_VARS to return the current process.env values
+    jest.unstable_mockModule("../../src/services/config/ENV_VARS.js", () => ({
+      default: {
+        GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+        GEMINI_MODEL: process.env.GEMINI_MODEL,
+      },
+    }));
+
     // Import the module after all mocks are set up
     const module = await import("../../src/services/is_valid_image.js");
-    isValidImage = module.isValidImage;
-  });
+    return module.isValidImage;
+  };
 
   afterEach(() => {
     jest.clearAllMocks();
+    delete process.env.GEMINI_API_KEY;
+    delete process.env.GEMINI_MODEL;
   });
 
   describe("parameter validation", () => {
+    beforeEach(async () => {
+      isValidImage = await setupEnvAndImport("test-api-key", "test-model");
+    });
+
     it("should throw error when imageBase64 is missing", async () => {
       await expect(isValidImage(null, "image/jpeg")).rejects.toThrow(
         "Both imageBase64 and mimeType parameters are required"
@@ -73,31 +91,36 @@ describe("isValidImage", () => {
 
   describe("environment variable validation", () => {
     it("should throw error when GEMINI_API_KEY is missing", async () => {
-      jest.resetModules();
-      delete process.env.GEMINI_API_KEY;
-
-      const { isValidImage: freshImport } = await import("../../src/services/is_valid_image.js");
-      await expect(freshImport("base64data", "image/jpeg")).rejects.toThrow(
+      isValidImage = await setupEnvAndImport(undefined, "test-model");
+      await expect(isValidImage("base64data", "image/jpeg")).rejects.toThrow(
         "Missing required environment variables: GEMINI_API_KEY or GEMINI_MODEL"
       );
     });
 
     it("should throw error when GEMINI_MODEL is missing", async () => {
-      jest.resetModules();
-      delete process.env.GEMINI_MODEL;
+      isValidImage = await setupEnvAndImport("test-api-key", undefined);
+      await expect(isValidImage("base64data", "image/jpeg")).rejects.toThrow(
+        "Missing required environment variables: GEMINI_API_KEY or GEMINI_MODEL"
+      );
+    });
 
-      const { isValidImage: freshImport } = await import("../../src/services/is_valid_image.js");
-      await expect(freshImport("base64data", "image/jpeg")).rejects.toThrow(
+    it("should throw error when both GEMINI_API_KEY and GEMINI_MODEL are missing", async () => {
+      isValidImage = await setupEnvAndImport(undefined, undefined);
+      await expect(isValidImage("base64data", "image/jpeg")).rejects.toThrow(
         "Missing required environment variables: GEMINI_API_KEY or GEMINI_MODEL"
       );
     });
   });
 
   describe("successful validation", () => {
+    beforeEach(async () => {
+      isValidImage = await setupEnvAndImport("test-api-key", "test-model");
+    });
+
     it("should return is_valid true for valid chicken image", async () => {
       const mockStream = {
         [Symbol.asyncIterator]: async function* () {
-          yield { text: '{"is_valid":true,"reason":"Valid chicken dish"}' };
+          yield { text: '{"is_valid":true,"tag":"VALID","reason":"Valid chicken dish"}' };
         },
       };
       mockGenerateContentStream.mockResolvedValue(mockStream);
@@ -106,6 +129,7 @@ describe("isValidImage", () => {
 
       expect(result).toEqual({
         is_valid: true,
+        tag: "VALID",
         reason: "Valid chicken dish",
       });
     });
@@ -113,7 +137,7 @@ describe("isValidImage", () => {
     it("should return is_valid false for invalid image", async () => {
       const mockStream = {
         [Symbol.asyncIterator]: async function* () {
-          yield { text: '{"is_valid":false,"reason":"Not a chicken dish"}' };
+          yield { text: '{"is_valid":false,"tag":"NOT_FOOD_OR_CHICKEN","reason":"Not a chicken dish"}' };
         },
       };
       mockGenerateContentStream.mockResolvedValue(mockStream);
@@ -122,6 +146,7 @@ describe("isValidImage", () => {
 
       expect(result).toEqual({
         is_valid: false,
+        tag: "NOT_FOOD_OR_CHICKEN",
         reason: "Not a chicken dish",
       });
     });
@@ -130,7 +155,7 @@ describe("isValidImage", () => {
       const mockStream = {
         [Symbol.asyncIterator]: async function* () {
           yield { text: '{"is_valid":' };
-          yield { text: 'true,"reason":"Valid"}' };
+          yield { text: 'true,"tag":"VALID","reason":"Valid"}' };
         },
       };
       mockGenerateContentStream.mockResolvedValue(mockStream);
@@ -139,12 +164,17 @@ describe("isValidImage", () => {
 
       expect(result).toEqual({
         is_valid: true,
+        tag: "VALID",
         reason: "Valid",
       });
     });
   });
 
   describe("error handling", () => {
+    beforeEach(async () => {
+      isValidImage = await setupEnvAndImport("test-api-key", "test-model");
+    });
+
     it("should throw error when API call fails", async () => {
       mockGenerateContentStream.mockRejectedValue(new Error("API connection failed"));
 
