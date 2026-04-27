@@ -143,21 +143,60 @@ app.get("/pollo/", (req, res) => {
 Checkout README.md to start.</pre>`);
 });
 
+/**
+ * GET /pollo/status/:idwhatsapp
+ * Retrieves the last N failed analysis logs for a WhatsApp user
+ *
+ * Query Parameters:
+ *   - lastMsgs: number (optional, default: 10, max: 100)
+ *
+ * Response:
+ *   - 200: { stat: "ok", data: { failedLogs: [...], count: number } }
+ *   - 400: { stat: "error", data: { message: string } } - invalid params
+ *   - 500: { stat: "error", data: { message: string } } - server error
+ */
 app.get("/pollo/status/:idwhatsapp", async (req, res) => {
   const { idwhatsapp } = req.params;
-  const lastMsgs = parseInt(req.query.lastMsgs) || 10;
+  const lastMsgsParam = req.query.lastMsgs;
 
-  console.log(`GET /pollo/status/${idwhatsapp} - Getting last ${lastMsgs} messages`);
+  // 1. Validate idwhatsapp parameter
+  if (!idwhatsapp || typeof idwhatsapp !== "string" || idwhatsapp.trim() === "") {
+    return res.status(400).json({
+      stat: "error",
+      data: { message: "idWhatsApp parameter is required and cannot be empty" },
+    });
+  }
+
+  // 2. Parse and validate lastMsgs query parameter
+  let lastMsgs = 10;
+  if (lastMsgsParam !== undefined) {
+    const parsed = parseInt(lastMsgsParam, 10);
+    if (isNaN(parsed) || parsed < 1) {
+      lastMsgs = 10;
+    } else if (parsed > 100) {
+      lastMsgs = 100; // cap at 100 to prevent abuse
+    } else {
+      lastMsgs = parsed;
+    }
+  }
+
+  console.log(`GET /pollo/status/${idwhatsapp} - Fetching last ${lastMsgs} messages`);
 
   try {
-    const result = await ReadLastNMessages(idwhatsapp, lastMsgs);
-    console.log('ReadLastNMessages result:', JSON.stringify(result, null, 2));
-    res.json(result);
+    const result = await ReadLastNMessages(idwhatsapp.trim(), lastMsgs);
+
+    if (result.stat === "error") {
+      console.error("ReadLastNMessages returned error:", result.data.message);
+      return res.status(500).json(result);
+    }
+
+    console.log("ReadLastNMessages result:", JSON.stringify(result, null, 2));
+    return res.status(200).json(result);
   } catch (error) {
-    console.error('Error in /pollo/status endpoint:', error.message);
-    res.status(500).json({
+    console.error("Unexpected error in /pollo/status endpoint:", error.message);
+    return res.status(500).json({
       stat: "error",
-      data: { message: error.message }
+      data: { message: "An unexpected error occurred" },
     });
   }
 });
