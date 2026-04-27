@@ -1,69 +1,58 @@
-/**
- * In-memory storage for failed validation attempts
- * Key: idwhatsapp, Value: validation result from isValidImage
- */
-const failedAttempts = new Map();
+import db, { FieldValue, Timestamp } from "../firebase.js";
 
 /**
- * Saves a failed validation attempt to memory.
+ * Firestore collection for failed validation attempts
+ */
+const COLLECTION_NAME = "failed_analysis_logs";
+
+/**
+ * Mapping of validation tags to user-friendly messages in Spanish
+ */
+const TAG_TO_USER_MESSAGE = {
+  NOT_FOOD_OR_CHICKEN:
+    "La imagen debe mostrar alimentos o pollo; no se aceptarán imágenes que no estén relacionadas con comida.",
+  STOCK_OR_INTERNET_IMAGERY:
+    "No se aceptarán imágenes genéricas de internet o con indicios de uso comercial previo, como marcas de agua o firmas de autor.",
+  AI_GENERATED_OR_MANIPULATED:
+    "La imagen será rechazada si muestra señales de haber sido generada por IA o manipulada digitalmente, como proporciones irreales o iluminación poco natural.",
+  ADVERTISEMENTS_OR_COMMERCIAL_DISPLAYS:
+    "No se aceptarán imágenes genéricas de internet o con indicios de uso comercial previo, como marcas de agua o firmas de autor.",
+  LIVE_ANIMALS:
+    "No se aceptarán imágenes de animales vivos; solo se permiten imágenes de alimentos (pollo procesado o ingredientes).",
+};
+
+/**
+ * Saves a failed validation attempt to Firestore.
  *
- * @param {string} idwhatsapp - The WhatsApp identifier
+ * @param {string} idwhatsapp - The WhatsApp identifier (document ID)
  * @param {{ is_valid: boolean, tag: string, reason: string }} validationResult - The result from isValidImage()
- * @returns {void}
+ * @returns {Promise<void>}
  *
  * @example
- * recordFailedAttempt("123456789", { is_valid: false, tag: "AI_GENERATED_OR_MANIPULATED", reason: "Image appears to be AI-generated" });
+ * await recordFailedAttempt("123456789", { is_valid: false, tag: "AI_GENERATED_OR_MANIPULATED", reason: "Image appears to be AI-generated" });
  */
-export function recordFailedAttempt(idwhatsapp, validationResult) {
+export async function recordFailedAttempt(idwhatsapp, validationResult) {
   if (!idwhatsapp || typeof idwhatsapp !== "string") {
     throw new Error("idwhatsapp must be a non-empty string");
   }
 
   if (!validationResult || typeof validationResult !== "object") {
-    throw new Error("validationResult must be a valid object from isValidImage()");
+    throw new Error(
+      "validationResult must be a valid object from isValidImage()",
+    );
   }
 
-  failedAttempts.set(idwhatsapp, {
-    ...validationResult,
-    timestamp: Date.now(),
-  });
-}
+  const msgToUser =
+    TAG_TO_USER_MESSAGE[validationResult.tag] || validationResult.reason;
 
-/**
- * Retrieves a failed validation attempt from memory.
- *
- * @param {string} idwhatsapp - The WhatsApp identifier
- * @returns {{ is_valid: boolean, tag: string, reason: string, timestamp: number } | undefined}
- */
-export function getFailedAttempt(idwhatsapp) {
-  return failedAttempts.get(idwhatsapp);
-}
+  const docData = {
+    msg_to_dev: validationResult.reason,
+    msg_to_user: msgToUser,
+    time: Timestamp.now(),
+  };
 
-/**
- * Removes a failed validation attempt from memory.
- *
- * @param {string} idwhatsapp - The WhatsApp identifier
- * @returns {boolean} True if an entry was deleted, false otherwise
- */
-export function clearFailedAttempt(idwhatsapp) {
-  return failedAttempts.delete(idwhatsapp);
-}
-
-/**
- * Checks if there is a failed attempt stored for a given WhatsApp ID.
- *
- * @param {string} idwhatsapp - The WhatsApp identifier
- * @returns {boolean}
- */
-export function hasFailedAttempt(idwhatsapp) {
-  return failedAttempts.has(idwhatsapp);
-}
-
-/**
- * Returns all failed attempts (for debugging/monitoring purposes).
- *
- * @returns {Map<string, { is_valid: boolean, tag: string, reason: string, timestamp: number }>}
- */
-export function getAllFailedAttempts() {
-  return new Map(failedAttempts);
+  await db.collection(COLLECTION_NAME).doc(idwhatsapp).set(
+    { logs: FieldValue.arrayUnion(docData) },
+    { merge: true },
+  );
 }
