@@ -16,34 +16,17 @@ export const getLastNMsgs = async (idwhatsapp, lastMsgs) => {
   const docRef = db.collection("failed_analysis_logs").doc(idwhatsapp);
   const docSnap = await docRef.get();
 
-  const failedLogs = [];
+  const lastNLogs = [];
 
   if (docSnap.exists) {
     const data = docSnap.data();
     const logsArray = data.logs || [];
 
-    console.log(`logsArray: `, logsArray);
+    // Get only the last N entries added
+    const slicedLogs = logsArray.slice(-lastMsgs);
 
-    // Sort by time descending (newest first) and get the last N entries
-    const sortedByTime = logsArray
-      .filter((log) => log.time) // Ensure log has time property
-      .sort((a, b) => {
-        const timeA = new Date(
-          a.time instanceof Timestamp ? a.time.toDate() : a.time,
-        );
-        const timeB = new Date(
-          b.time instanceof Timestamp ? b.time.toDate() : b.time,
-        );
-        return timeB - timeA; // Descending order (newest first)
-      });
-
-    // Get the last N entries (most recent)
-    const recentLogs = sortedByTime.slice(0, lastMsgs);
-
-    console.log(`recentLogs: `, recentLogs);
-
-    recentLogs.forEach((log) => {
-      failedLogs.push({
+    slicedLogs.forEach((log) => {
+      lastNLogs.push({
         msg_to_dev: log.msg_to_dev || "",
         msg_to_user: log.msg_to_user || "",
         time: log.time ? formatTimestamp(log.time) : null,
@@ -51,7 +34,7 @@ export const getLastNMsgs = async (idwhatsapp, lastMsgs) => {
     });
   }
 
-  return failedLogs;
+  return lastNLogs;
 };
 
 /**
