@@ -12,6 +12,7 @@ import 'dotenv/config'
 import express from "express";
 import axios from "axios";
 import { saveUser, checkImage } from "./fire.js";
+import { ReadLastNMessages } from "./src/application/read_last_n_messages.js";
 import cors from "cors";
 import ENV_VARS from './src/services/config/ENV_VARS.js';
 
@@ -140,6 +141,25 @@ app.post("/pollo/saveusr", async (req, res) => {
 app.get("/pollo/", (req, res) => {
   res.send(`<pre>Nothing to see here.
 Checkout README.md to start.</pre>`);
+});
+
+app.get("/pollo/status/:idwhatsapp", async (req, res) => {
+  const { idwhatsapp } = req.params;
+  const lastMsgs = parseInt(req.query.lastMsgs) || 10;
+
+  console.log(`GET /pollo/status/${idwhatsapp} - Getting last ${lastMsgs} messages`);
+
+  try {
+    const result = await ReadLastNMessages(idwhatsapp, lastMsgs);
+    console.log('ReadLastNMessages result:', JSON.stringify(result, null, 2));
+    res.json(result);
+  } catch (error) {
+    console.error('Error in /pollo/status endpoint:', error.message);
+    res.status(500).json({
+      stat: "error",
+      data: { message: error.message }
+    });
+  }
 });
 
 app.listen(PORT, () => {
