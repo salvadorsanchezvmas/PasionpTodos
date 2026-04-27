@@ -32,6 +32,7 @@ export async function recordFailedAttempt(idwhatsapp, validationResult) {
     TAG_TO_USER_MESSAGE[validationResult.tag] || validationResult.reason;
 
   const docData = {
+    tag: validationResult.tag,
     msg_to_dev: validationResult.reason,
     msg_to_user: msgToUser,
     time: Timestamp.now(),
