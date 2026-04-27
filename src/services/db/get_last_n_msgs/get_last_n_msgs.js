@@ -18,12 +18,21 @@ export const getLastNMsgs = async (idwhatsapp, lastMsgs) => {
 
   const failedLogs = [];
 
-  if (docSnap.exists) {
-    const data = docSnap.data();
-    const logsArray = data.logs || [];
+if (docSnap.exists) {
+      const data = docSnap.data();
+      const logsArray = data.logs || [];
 
-    // Get the last N entries (newest first)
-    const recentLogs = logsArray.slice(-lastMsgs).reverse();
+      // Sort by time descending (newest first) and get the last N entries
+      const sortedByTime = logsArray
+        .filter(log => log.time) // Ensure log has time property
+        .sort((a, b) => {
+          const timeA = new Date(a.time instanceof Timestamp ? a.time.toDate() : a.time);
+          const timeB = new Date(b.time instanceof Timestamp ? b.time.toDate() : b.time);
+          return timeB - timeA; // Descending order (newest first)
+        });
+
+      // Get the last N entries (most recent)
+      const recentLogs = sortedByTime.slice(0, lastMsgs);
 
     recentLogs.forEach((log) => {
       failedLogs.push({
