@@ -1,5 +1,5 @@
-import { Timestamp, doc, getDoc } from "firebase-admin/firestore";
-import db from "../../firebase.js";
+import { Timestamp } from "firebase-admin/firestore";
+import db from "../../db/firebase.js";
 
 /**
  * Retrieves the last N failed analysis logs for a specific WhatsApp user from the database
@@ -13,8 +13,8 @@ import db from "../../firebase.js";
  */
 export const getLastNMsgs = async (idwhatsapp, lastMsgs) => {
   // Get document from failed_analysis_logs collection using idwhatsapp as document ID
-  const docRef = doc(db, "failed_analysis_logs", idwhatsapp);
-  const docSnap = await getDoc(docRef);
+  const docRef = db.collection("failed_analysis_logs").doc(idwhatsapp);
+  const docSnap = await docRef.get();
 
   const failedLogs = [];
 

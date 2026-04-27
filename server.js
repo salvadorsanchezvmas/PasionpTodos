@@ -157,40 +157,18 @@ Checkout README.md to start.</pre>`);
  */
 app.get("/pollo/status/:idwhatsapp", async (req, res) => {
   const { idwhatsapp } = req.params;
-  const lastMsgsParam = req.query.lastMsgs;
+  const lastMsgs = req.query.lastMsgs;
 
-  // 1. Validate idwhatsapp parameter
-  if (!idwhatsapp || typeof idwhatsapp !== "string" || idwhatsapp.trim() === "") {
-    return res.status(400).json({
-      stat: "error",
-      data: { message: "idWhatsApp parameter is required and cannot be empty" },
-    });
-  }
-
-  // 2. Parse and validate lastMsgs query parameter
-  let lastMsgs = 10;
-  if (lastMsgsParam !== undefined) {
-    const parsed = parseInt(lastMsgsParam, 10);
-    if (isNaN(parsed) || parsed < 1) {
-      lastMsgs = 10;
-    } else if (parsed > 100) {
-      lastMsgs = 100; // cap at 100 to prevent abuse
-    } else {
-      lastMsgs = parsed;
-    }
-  }
-
-  console.log(`GET /pollo/status/${idwhatsapp} - Fetching last ${lastMsgs} messages`);
+  console.log(`GET /pollo/status/${idwhatsapp} - Fetching last ${lastMsgs || 10} messages`);
 
   try {
-    const result = await ReadLastNMessages(idwhatsapp.trim(), lastMsgs);
+    const result = await ReadLastNMessages(idwhatsapp, lastMsgs);
 
     if (result.stat === "error") {
-      console.error("ReadLastNMessages returned error:", result.data.message);
-      return res.status(500).json(result);
+      const isValidationError = result.data.message.includes("required");
+      return res.status(isValidationError ? 400 : 500).json(result);
     }
 
-    console.log("ReadLastNMessages result:", JSON.stringify(result, null, 2));
     return res.status(200).json(result);
   } catch (error) {
     console.error("Unexpected error in /pollo/status endpoint:", error.message);
