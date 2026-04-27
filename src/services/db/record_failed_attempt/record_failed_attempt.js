@@ -1,4 +1,5 @@
-import db, { FieldValue, Timestamp } from "../firebase.js";
+import db from "../firebase.js";
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { TAG_TO_USER_MESSAGE } from "./TAG_TO_USER_MESSAGE.js";
 
 /**
