@@ -1,6 +1,9 @@
 import { getLastNMsgs } from "../services/db/get_last_n_msgs/get_last_n_msgs.js";
 import { checkUserExists } from "../services/db/user_profile/check_user_exists.js";
 
+const USER_HAS_NOT_REGISTER_MSG =
+  "Para participar primero debes registrarte.";
+
 /**
  * Retrieves the last N failed analysis logs for a specific WhatsApp user
  * @param {string} idwhatsapp - The WhatsApp ID of the user (document ID)
@@ -64,8 +67,7 @@ export const ReadLastNMessages = async (idwhatsapp, lastMsgs) => {
       return {
         stat: "error",
         data: {
-          message:
-            "Para participar en el concurso, primero debes registrarte enviando una foto de un plato con pollo.",
+          message: USER_HAS_NOT_REGISTER_MSG,
         },
       };
     }
