@@ -15,6 +15,7 @@ Feature: Get Promotion Coupon
     When the user invokes the GetPromotion endpoint
     Then the system selects a promotion code from the promotion collection
     And the system decrements the user's promosCount by 1
+    And the system appends the redemption to promotion_history array
     And the system sends the promotion coupon via email
     And the system logs the promotion redemption in the database
     And the system returns the promotion details
@@ -62,6 +63,7 @@ Feature: Get Promotion Coupon
    - If no promotions available, return error: "No hay promociones disponibles en este momento. Intenta más tarde."
 6. If promotion available:
    - Decrement user's `promosCount` by 1 in `user_profile` collection
+   - Append to user's `promotion_history` array: `{request_date: Timestamp, promotion_id: number}`
    - Update promotion status to "used" or assign to user
    - Send coupon via email in coupon format (id + 6-digit code)
    - Log redemption in `promotion_logs` collection with timestamp
@@ -124,7 +126,13 @@ Feature: Get Promotion Coupon
 {
   "_id": "ObjectId",
   "idWhatsApp": "string",
-  "promosCount": "number"
+  "promosCount": "number",
+  "promotion_history": [
+    {
+      "request_date": "Timestamp (Firebase)",
+      "promotion_id": "number"
+    }
+  ]
 }
 ```
 
@@ -158,6 +166,7 @@ Feature: Get Promotion Coupon
 
 - 1 promotion is accumulated for every 3 valid image uploads
 - `promosCount` is decremented only when a promotion is successfully redeemed
+- `promotion_history` array is appended with each redemption: `{request_date: Timestamp, promotion_id: number}`
 - Promotion codes are 6-digit numeric strings
 - Email sent in coupon format with clear expiration terms
 - All redemption attempts are logged for audit purposes

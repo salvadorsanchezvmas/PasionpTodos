@@ -74,6 +74,9 @@ sequenceDiagram
         Redeem->>UP: Decrement promosCount by 1
         UP-->>Redeem: Return update result
     and
+        Redeem->>UP: Append to promotion_history array: {request_date: Timestamp, promotion_id: number}
+        UP-->>Redeem: Return update result
+    and
         Redeem->>Promo: Update promotion status to "used", set assignedTo
         Promo-->>Redeem: Return update result
     and
