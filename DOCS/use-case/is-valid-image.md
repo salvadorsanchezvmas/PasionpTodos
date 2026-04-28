@@ -69,7 +69,8 @@ Feature: Image Validation Workflow
   Scenario: Daily attempt limit exceeded
     Given the user has already made 3 valid attempts on the current day
     When the user submits another image
-    Then the request is rejected with error "Daily attempt limit reached"
+    Then the validation attempt is logged in attempts_logs collection
+    And the request is rejected with error "Daily attempt limit reached"
     And no validation or stamp assignment occurs
     And the user is informed to try again tomorrow
 
@@ -107,17 +108,19 @@ Step 3: GET {downloadUrl} (responseType: arraybuffer)
         → Convert to base64
 ```
 
-### 3. AI Validation (`checkImage` function in `fire.js`)
+### 3. AI Validation (`validateImage` function in `src/application/validate_image.js`)
 
 ```javascript
 // 1. Verify user exists in Firestore user_profile collection
-// 2. Call isValidImage(base64, mimeType) → Google Gemini AI
-// 3. Register attempt via register_attempt(idwhatsapp, validationResult)
-// 4. If !is_valid → return error with tag and reason
-// 5. If is_valid → upload to GCS, then updateAlbumData()
+// 2. Check daily valid attempt limit via getTodayValidAttempts()
+//    - If limit reached: register attempt with tag "DAILY_LIMIT_EXCEEDED" and reject
+// 3. Call isValidImage(base64, mimeType) → Google Gemini AI
+// 4. Register attempt via register_attempt(idwhatsapp, validationResult)
+// 5. If !is_valid → return error with tag and reason
+// 6. If is_valid → uploadImage() to GCS, then updateAlbumData()
 ```
 
-### 4. Image Upload (Google Cloud Storage)
+### 4. Image Upload (`uploadImage` function in `src/services/storage/upload_image.js`)
 
 ```
 Bucket: polloparatodos-album
@@ -126,7 +129,7 @@ Content-Type: {mimeType}
 Public URL: https://storage.googleapis.com/{BUCKET_NAME}/{filename}
 ```
 
-### 5. Album Update (`updateAlbumData` function in `fire.js`)
+### 5. Album Update (`updateAlbumData` function in `src/services/db/update_album_data/update_album_data.js`)
 
 ```javascript
 // 1. Get existing album array and albumCount from user_profile
@@ -155,7 +158,7 @@ Public URL: https://storage.googleapis.com/{BUCKET_NAME}/{filename}
 ```json
 {
   "is_valid": true | false,
-  "tag": "VALID" | "NOT_FOOD_OR_CHICKEN" | "STOCK_OR_INTERNET_IMAGERY" | "AI_GENERATED_OR_MANIPULATED" | "ADVERTISEMENTS_OR_COMMERCIAL_DISPLAYS" | "LIVE_ANIMALS",
+  "tag": "VALID" | "NOT_FOOD_OR_CHICKEN" | "STOCK_OR_INTERNET_IMAGERY" | "AI_GENERATED_OR_MANIPULATED" | "ADVERTISEMENTS_OR_COMMERCIAL_DISPLAYS" | "LIVE_ANIMALS" | "DAILY_LIMIT_EXCEEDED",
   "reason": "Brief explanation of the classification"
 }
 ```
@@ -236,10 +239,10 @@ Fields:
 ### Daily Limit Technical Flow
 
 ```javascript
-// Before processing image validation in checkImage():
+// Before processing image validation in validateImage():
 // 1. Query attempts_logs for today (midnight to now)
 // 2. Count attempts where is_valid === true
-// 3. If count >= 3 → reject with DAILY_LIMIT_EXCEEDED error
+// 3. If count >= 3 → register attempt with tag "DAILY_LIMIT_EXCEEDED", reject
 // 4. Otherwise → proceed with AI validation
 ```
 
@@ -269,12 +272,16 @@ Count: < 3 to allow attempt
 
 ## Key Files
 
-| File                                                      | Function                                          |
-| --------------------------------------------------------- | ------------------------------------------------- |
-| `server.js`                                               | Webhook endpoint, image download from Meta        |
-| `fire.js`                                                 | `checkImage()`, `updateAlbumData()`, `saveUser()` |
-| `src/services/is_valid_image.js`                          | AI validation via Google Gemini                   |
-| `src/services/chicken-classifier-prompt.v1.js`            | AI prompt with classification criteria            |
-| `src/services/db/register_attempt/register_attempt.js`    | Logs validation attempts to Firestore             |
-| `src/services/db/get_last_n_msgs/get_last_n_msgs.js`      | Retrieves validation logs                         |
-| `src/services/db/register_attempt/TAG_TO_USER_MESSAGE.js` | Tag to Spanish message mapping                    |
+| File                                                                           | Function                                              |
+| ------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| `server.js`                                                                    | Webhook endpoint, image download from Meta            |
+| `fire.js`                                                                      | `checkImage()`, `updateAlbumData()`, `saveUser()`    |
+| `src/application/validate_image.js`                                            | Main use case: validates image, awards stamps        |
+| `src/services/ai/is_valid_image.js`                                           | AI validation via Google Gemini                      |
+| `src/services/ai/chicken-classifier-prompt.v1.js`                              | AI prompt with classification criteria                |
+| `src/services/storage/upload_image.js`                                         | Uploads image to Google Cloud Storage                |
+| `src/services/db/update_album_data/update_album_data.js`                      | Updates album with new stamp, handles promo trigger  |
+| `src/services/db/register_attempt/register_attempt.js`                         | Logs validation attempts to Firestore                |
+| `src/services/db/get_today_valid_attempts/get_today_valid_attempts.js`        | Counts valid attempts today (rate limiting)          |
+| `src/services/db/get_last_n_msgs/get_last_n_msgs.js`                          | Retrieves validation logs                            |
+| `src/services/db/register_attempt/TAG_TO_USER_MESSAGE.js`                      | Tag to Spanish message mapping                        |
