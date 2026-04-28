@@ -88,7 +88,9 @@ export async function validateImage(idwhatsapp, imageBase64, mimeType) {
   // =================================
   console.log("Step 2: Checking daily valid attempt limit...");
   const todayValidAttempts = await getTodayValidAttempts(idwhatsapp);
-  console.log(`Today valid attempts: ${todayValidAttempts}/${DAILY_VALID_ATTEMPT_LIMIT}`);
+  console.log(
+    `Today valid attempts: ${todayValidAttempts}/${DAILY_VALID_ATTEMPT_LIMIT}`,
+  );
 
   // Prepare a synthetic validation result for the daily limit case
   const dailyLimitValidationResult = {
@@ -105,7 +107,10 @@ export async function validateImage(idwhatsapp, imageBase64, mimeType) {
       await register_attempt(idwhatsapp, dailyLimitValidationResult);
       console.log("Attempt registered (limit exceeded).");
     } catch (error) {
-      console.error("Failed to register limit-exceeded attempt:", error.message);
+      console.error(
+        "Failed to register limit-exceeded attempt:",
+        error.message,
+      );
     }
 
     return {
@@ -155,7 +160,9 @@ export async function validateImage(idwhatsapp, imageBase64, mimeType) {
     return {
       stat: "error",
       data: {
-        message: validationResult.reason || "Image does not appear to contain chicken.",
+        message:
+          validationResult.reason ||
+          "Image does not appear to contain chicken.",
         tag: validationResult.tag,
         msg_to_user: msgToUser,
       },
