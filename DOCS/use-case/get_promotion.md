@@ -32,8 +32,14 @@ Feature: Get Promotion Coupon
     Then the system returns an error response
     And the error message indicates no promotions are currently available
 
-  Scenario: Invalid user profile
-    Given the user profile does not exist or is invalid
+  Scenario: Invalid user id format
+    Given the user provides an invalid idUser format
+    When the user invokes the GetPromotion endpoint
+    Then the system returns an error response
+    And the error message indicates the idUser is invalid
+
+  Scenario: User does not exist
+    Given the user provides a valid idUser that does not exist in the system
     When the user invokes the GetPromotion endpoint
     Then the system returns an error response
     And the error message indicates the user must register first
@@ -42,19 +48,24 @@ Feature: Get Promotion Coupon
 ## Technical Flow
 
 1. Client invokes `GetPromotion(idUser)`
-2. Function validates:
+2. Function validates `idUser`:
    - `idUser` is required and must be a non-empty string
-   - User profile exists in `user_profile` collection
-   - `promosCount` >= 1
-3. Function checks promotion availability in `promotion` collection
+   - `idUser` must be a valid ObjectId format
+3. Function checks if user exists:
+   - Query `user_profile` collection by `idUser`
+   - If user does not exist, return error: "Para reclamar una promoción, primero debes registrarte enviando una foto de un plato con pollo."
+4. Function checks `promosCount`:
+   - If `promosCount` < 1, return error: "No tienes promociones acumuladas. Sube 3 imágenes válidas para obtener una."
+5. Function checks promotion availability in `promotion` collection
    - Queries for available promotions (status: "available")
    - Selects one promotion code
-4. If promotion available:
+   - If no promotions available, return error: "No hay promociones disponibles en este momento. Intenta más tarde."
+6. If promotion available:
    - Decrement user's `promosCount` by 1 in `user_profile` collection
    - Update promotion status to "used" or assign to user
    - Send coupon via email in coupon format (id + 6-digit code)
    - Log redemption in `promotion_logs` collection with timestamp
-5. Return promotion details to client
+7. Return promotion details to client
 
 ## Request Format
 
@@ -95,10 +106,10 @@ Feature: Get Promotion Coupon
 
 | Scenario                | Message                                                                                           |
 | ----------------------- | ------------------------------------------------------------------------------------------------- |
+| Invalid idUser format   | "ID de usuario inválido"                                                                          |
+| User not registered     | "Para reclamar una promoción, primero debes registrarte enviando una foto de un plato con pollo." |
 | User has no promotions  | "No tienes promociones acumuladas. Sube 3 imágenes válidas para obtener una."                     |
 | No promotions available | "No hay promociones disponibles en este momento. Intenta más tarde."                              |
-| User not registered     | "Para reclamar una promoción, primero debes registrarte enviando una foto de un plato con pollo." |
-| Invalid user id         | "ID de usuario inválido"                                                                          |
 
 ## Promotion Code Format
 
