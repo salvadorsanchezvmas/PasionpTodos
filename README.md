@@ -9,7 +9,8 @@
 1. [Project Overview](#1-project-overview)
 2. [Use Cases](#2-use-cases)
    - [Image Validation Workflow](#21-image-validation-workflow)
----
+   - [Get Last N Messages](#22-get-last-n-messages)
+3. [Diagrams](#3-diagrams)
 
 ## 1. Project Overview
 
@@ -28,12 +29,13 @@
 
 ### API Endpoints
 
-| Method                  | Endpoint                      | Description                                    |
-| ----------------------- | ----------------------------- | ---------------------------------------------- |
-| `GET`                   | `/pollo/`                     | Health check                                   |
-| `GET`                   | `/pollo/phook`                | WhatsApp webhook verification (Meta handshake) |
-| `POST`                  | `/pollo/phook`                | WhatsApp message webhook (receives images)     |
-| `POST` `/pollo/saveusr` | Register new user to Firebase |
+| Method | Endpoint                           | Description                                    |
+| ------ | ---------------------------------- | ---------------------------------------------- |
+| `GET`  | `/pollo/`                          | Health check                                   |
+| `GET`  | `/pollo/phook`                     | WhatsApp webhook verification (Meta handshake) |
+| `POST` | `/pollo/phook`                     | WhatsApp message webhook (receives images)     |
+| `POST` | `/pollo/saveusr`                   | Register new user to Firebase                  |
+| `GET`  | `/pollo/status/:idWhatsApp`        | Get last N messages for a user                 |
 
 ### Tech Stack
 
@@ -105,37 +107,61 @@ This function handles the loyalty stamp logic:
 
 ---
 
-## Quick Reference
+### 2.2 Get Last N Messages
 
-### NPM Scripts
+**Actor:** Client application retrieving failed analysis logs
 
-```bash
-npm start              # Start production server
-npm run dev            # Start with nodemon (auto-reload)
-npm test               # Run Jest unit tests
-npm run google-studio-ai  # Test AI image validation
-npm run print          # Print environment variables
+**Flow:**
+
+```
+1. Client invokes ReadLastNMessages(idwhatsapp, lastMsgs)
+2. Function validates idWhatsApp parameter (required, non-empty string)
+3. Function sanitizes and caps lastMsgs parameter (default: 10, max: 100)
+4. Function delegates to getLastNMsgs() database service
+5. Function returns JSON response with failedLogs array
 ```
 
-### Environment Variables
+#### Parameter Validation
 
-| Variable               | Purpose                              |
-| ---------------------- | ------------------------------------ |
-| `GEMINI_API_KEY`       | Google Gemini AI API key             |
-| `GEMINI_MODEL`         | AI model name                        |
-| `FIREBASE_*`           | Firebase service account credentials |
-| `BUCKET_*`             | Google Cloud Storage credentials     |
-| `EMAIL_USER/PASS`      | SMTP email credentials               |
-| `WEBHOOK_VERIFY_TOKEN` | WhatsApp webhook verification        |
-| `GRAPH_API_TOKEN`      | Meta Graph API token                 |
-| `PORT`                 | Server port (default: 5200)          |
+| Parameter    | Required | Default | Max | Notes                                      |
+| ------------ | -------- | ------- | --- | ------------------------------------------ |
+| `idWhatsApp` | Yes      | -       | -   | Must be non-empty string                   |
+| `lastMsgs`   | No       | 10      | 100 | Positive integer, capped at 100           |
 
-### Key Files
+#### Return Structure
 
-| File                                        | Description                     |
-| ------------------------------------------- | ------------------------------- |
-| `server.js`                                 | Main Express webhook server     |
-| `fire.js`                                   | Firebase + GCS + Email logic    |
-| `src/services/is_valid_image.js`            | AI image validation service     |
-| `src/services/chicken-classifier-prompt.js` | AI validation prompt            |
-| `tests/services/is_valid_image.test.js`     | Unit tests for image validation |
+```json
+{
+  "stat": "ok" | "error",
+  "data": {
+    "failedLogs": [
+      {
+        "msg_to_dev": "Error description for developer",
+        "msg_to_user": "Mensaje de error para usuario",
+        "time": "2026-04-28T07:19:29.000Z"
+      }
+    ]
+  },
+  "count": number
+}
+```
+
+#### Error Response
+
+```json
+{
+  "stat": "error",
+  "data": {
+    "message": "Error description here"
+  }
+}
+```
+
+---
+
+## 3. Diagrams
+
+| Diagram                          | Description                                      |
+| -------------------------------- | ------------------------------------------------ |
+| [Image Validation Sequence](./DOCS/diagrams/image-validation-sequence.md) | Full chicken stamp award flow with AI validation |
+| [Get Last N Messages Sequence](./DOCS/diagrams/get-last-n-msgs-sequence.md) | Failed analysis logs retrieval flow              |
