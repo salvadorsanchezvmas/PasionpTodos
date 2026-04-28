@@ -27,22 +27,22 @@ export const redeemPromotion = async (idWhatsApp, promotion) => {
     }),
   });
 
-  // 2. Update promotion status to "used" and assign to user
-  const promoRef = db.collection(PROMOTION_COLLECTION).doc(promotion.id);
-  batch.update(promoRef, {
-    status: "used",
-    assignedTo: idWhatsApp,
-    usedAt: Timestamp.now(),
-  });
-
-  // 3. Log the redemption in promotion_logs
-  const logRef = db.collection(PROMOTION_LOGS_COLLECTION).doc();
-  batch.set(logRef, {
-    idUser: idWhatsApp,
-    idPromotion: promotion.id,
-    code: promotion.code,
-    redeemedAt: Timestamp.now(),
-  });
+//   // 2. Update promotion status to "used" and assign to user
+//   const promoRef = db.collection(PROMOTION_COLLECTION).doc(promotion.id);
+//   batch.update(promoRef, {
+//     status: "used",
+//     assignedTo: idWhatsApp,
+//     usedAt: Timestamp.now(),
+//   });
+// 
+//   // 3. Log the redemption in promotion_logs
+//   const logRef = db.collection(PROMOTION_LOGS_COLLECTION).doc();
+//   batch.set(logRef, {
+//     idUser: idWhatsApp,
+//     idPromotion: promotion.id,
+//     code: promotion.code,
+//     redeemedAt: Timestamp.now(),
+//   });
 
   await batch.commit();
 };
