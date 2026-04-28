@@ -90,8 +90,24 @@ export async function validateImage(idwhatsapp, imageBase64, mimeType) {
   const todayValidAttempts = await getTodayValidAttempts(idwhatsapp);
   console.log(`Today valid attempts: ${todayValidAttempts}/${DAILY_VALID_ATTEMPT_LIMIT}`);
 
+  // Prepare a synthetic validation result for the daily limit case
+  const dailyLimitValidationResult = {
+    is_valid: false,
+    tag: "DAILY_LIMIT_EXCEEDED",
+    reason: DAILY_LIMIT_MESSAGE,
+  };
+
   if (todayValidAttempts >= DAILY_VALID_ATTEMPT_LIMIT) {
     console.log(`Daily limit exceeded for user ${idwhatsapp}.`);
+
+    // Register this attempt even though it's rejected due to limit
+    try {
+      await register_attempt(idwhatsapp, dailyLimitValidationResult);
+      console.log("Attempt registered (limit exceeded).");
+    } catch (error) {
+      console.error("Failed to register limit-exceeded attempt:", error.message);
+    }
+
     return {
       stat: "error",
       data: {
