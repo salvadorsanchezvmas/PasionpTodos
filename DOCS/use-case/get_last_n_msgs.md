@@ -38,6 +38,13 @@ Feature: Get Last N Failed Analysis Logs
     Given the client provides a valid idWhatsApp with no associated messages
     When the function queries the database
     Then the function returns an empty failedLogs array with count 0
+
+  Scenario: User has not registered any attempts
+    Given the client provides a valid idWhatsApp that has no registered attempts
+    When the ReadLastNMessages function is invoked
+    Then the function returns an error response with status "error"
+    And the error message indicates the user must register first
+    Example: "Para participar en el concurso, primero debes registrarte enviando una foto de un plato con pollo."
 ```
 
 ## Technical Flow
@@ -46,9 +53,14 @@ Feature: Get Last N Failed Analysis Logs
 2. Function validates:
    - `idWhatsApp` is required and must be a non-empty string
    - `lastMsgs` is optional (default: 10), must be a positive integer, capped at 100
-3. Function delegates to `getLastNMsgs(idwhatsapp, lastMsgs)` service
-4. Function returns messages limited to N
-5. Response format:
+3. Function checks if user is registered via `checkUserExists(idwhatsapp)` service
+   - Queries `user_profile` collection to verify user exists
+   - If user not registered, returns error: "Para participar en el concurso, primero debes registrarte enviando una foto de un plato con pollo."
+4. Function delegates to `getLastNMsgs(idwhatsapp, lastMsgs)` service
+   - Queries `attempts_logs` collection
+   - Returns empty array if user has no logs
+5. Function returns messages limited to N
+6. Response format:
    ```json
    {
      "stat": "ok",

@@ -20,23 +20,26 @@ export const getLastNMsgs = async (idwhatsapp, lastMsgs) => {
 
   const lastNLogs = [];
 
-  if (docSnap.exists) {
-    const data = docSnap.data();
-    const logsArray = data.logs || [];
-
-    // Get only the last N entries added
-    const slicedLogs = logsArray.slice(-lastMsgs);
-
-    slicedLogs.forEach((log) => {
-      lastNLogs.push({
-        is_valid: log.is_valid ?? false,
-        tag: log.tag || "",
-        msg_to_dev: log.msg_to_dev || "",
-        msg_to_user: log.msg_to_user || "",
-        time: log.time ? formatTimestamp(log.time) : null,
-      });
-    });
+  if (!docSnap.exists) {
+    // User has not registered any attempts - return empty array
+    return [];
   }
+
+  const data = docSnap.data();
+  const logsArray = data.logs || [];
+
+  // Get only the last N entries added
+  const slicedLogs = logsArray.slice(-lastMsgs);
+
+  slicedLogs.forEach((log) => {
+    lastNLogs.push({
+      is_valid: log.is_valid ?? false,
+      tag: log.tag || "",
+      msg_to_dev: log.msg_to_dev || "",
+      msg_to_user: log.msg_to_user || "",
+      time: log.time ? formatTimestamp(log.time) : null,
+    });
+  });
 
   return lastNLogs;
 };
