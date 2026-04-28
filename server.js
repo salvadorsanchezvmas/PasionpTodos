@@ -11,7 +11,8 @@ import 'dotenv/config'
 
 import express from "express";
 import axios from "axios";
-import { saveUser, checkImage } from "./fire.js";
+import { saveUser } from "./fire.js";
+import { validateImage } from "./src/application/validate_image.js";
 import { ReadLastNMessages } from "./src/application/read_last_n_messages.js";
 import cors from "cors";
 import ENV_VARS from './src/services/config/ENV_VARS.js';
@@ -83,11 +84,18 @@ app.post("/pollo/phook", async (req, res) => {
         const base64Image = Buffer.from(imageResponse.data).toString("base64");
 
         if (senderWhatsAppId) {
-          const imageValidationResult = await checkImage(senderWhatsAppId, base64Image, mimeType);
-          console.log("checkImage result:", imageValidationResult);
+          const imageValidationResult = await validateImage(senderWhatsAppId, base64Image, mimeType);
+          console.log("validateImage result:", imageValidationResult);
         } else {
-          console.warn("Unable to call checkImage: sender WhatsApp ID was not found in webhook payload.");
+          console.warn("Unable to call validateImage: sender WhatsApp ID was not found in webhook payload.");
         }
+
+        // if (senderWhatsAppId) {
+        //   const imageValidationResult = await checkImage(senderWhatsAppId, base64Image, mimeType);
+        //   console.log("checkImage result:", imageValidationResult);
+        // } else {
+        //   console.warn("Unable to call checkImage: sender WhatsApp ID was not found in webhook payload.");
+        // }
         
         console.log("Image converted to base64. Length:", base64Image.length);
         console.log("MIME type:", mimeType);
