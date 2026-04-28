@@ -2,7 +2,7 @@
  * Mapping of validation tags to user-friendly messages in Spanish
  */
 export const TAG_TO_USER_MESSAGE = {
-  VALID_IMAGE: 
+  VALID:
     "¡Imagen aprobada! Cumple perfectamente con todos nuestros lineamientos. Gracias por compartir tu foto de pollo con nosotros.",
   NOT_FOOD_OR_CHICKEN:
     "La imagen debe mostrar alimentos o pollo; no se aceptarán imágenes que no estén relacionadas con comida.",
