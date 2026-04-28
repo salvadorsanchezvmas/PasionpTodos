@@ -12,7 +12,7 @@ process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY || "test-api-key";
 process.env.GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
 
 // Import the service after env vars are set
-import { isValidImage } from "../../src/services/is_valid_image.js";
+import { isValidImage } from "../../src/services/ai/is_valid_image.js";
 
 /**
  * Helper to load image as base64

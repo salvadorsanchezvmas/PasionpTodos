@@ -10,7 +10,7 @@ import { getFirestore, Timestamp, FieldValue, Filter } from 'firebase-admin/fire
 import nodemailer from "nodemailer";
 import { Storage } from '@google-cloud/storage';
 import axios from 'axios';
-import { isValidImage } from './src/services/is_valid_image.js';
+import { isValidImage } from './src/services/ai/is_valid_image.js';
 import { register_attempt } from './src/services/db/register_attempt/register_attempt.js';
 
 import pdf from "pdf-creator-node";

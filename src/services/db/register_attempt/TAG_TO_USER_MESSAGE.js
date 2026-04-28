@@ -14,4 +14,6 @@ export const TAG_TO_USER_MESSAGE = {
     "Se rechazarán imágenes que estén diseñadas como anuncios, flyers o banners comerciales, o que contengan información de venta.",
   LIVE_ANIMALS:
     "No se aceptarán imágenes de animales vivos; solo se permiten imágenes de alimentos (pollo procesado o ingredientes).",
+  DAILY_LIMIT_EXCEEDED:
+    "Has alcanzado el límite de 3 intentos diarios. Intenta mañana.",
 };
