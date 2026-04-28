@@ -1,4 +1,5 @@
 import { getLastNMsgs } from "../services/db/get_last_n_msgs/get_last_n_msgs.js";
+import { checkUserExists } from "../services/db/user_profile/check_user_exists.js";
 
 /**
  * Retrieves the last N failed analysis logs for a specific WhatsApp user
@@ -54,10 +55,25 @@ export const ReadLastNMessages = async (idwhatsapp, lastMsgs) => {
       `ReadLastNMessages: Fetching last ${lastMsgs} logs for idWhatsApp: ${idwhatsapp}`,
     );
 
-    // 3. Delegate to database service
+    // 3. Check if user has registered any attempts
+    const isRegistered = await checkUserExists(idwhatsapp);
+    if (!isRegistered) {
+      console.log(
+        `ReadLastNMessages: User ${idwhatsapp} has no registered attempts`,
+      );
+      return {
+        stat: "error",
+        data: {
+          message:
+            "Para participar en el concurso, primero debes registrarte enviando una foto de un plato con pollo.",
+        },
+      };
+    }
+
+    // 4. Delegate to database service
     const failedLogs = await getLastNMsgs(idwhatsapp, lastMsgs);
 
-    // 4. Return JSON response
+    // 5. Return JSON response
     return {
       stat: "ok",
       data: {
