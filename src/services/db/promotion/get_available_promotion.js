@@ -7,7 +7,7 @@ const COLLECTION_NAME = "promotion";
 
 /**
  * Gets a random available promotion from the collection
- * @returns {Promise<{id: string, code: string, description: string, discount: string} | null>}
+ * @returns {Promise<{id: string, code: string, company: string, type: string, expiration: Timestamp} | null>}
  *   Returns promotion object if available, null otherwise
  */
 export const getAvailablePromotion = async () => {
@@ -28,7 +28,9 @@ export const getAvailablePromotion = async () => {
   return {
     id: doc.id,
     code: data.code,
-    description: data.description || "Promoción",
-    discount: data.discount || "10% off",
+    number: data.number,
+    company: data.company || "Pollo Feliz",
+    type: data.type || "descuento en compra",
+    expiration: data.expiration,
   };
 };

@@ -11,7 +11,7 @@ const PROMOTION_LOGS_COLLECTION = "promotion_logs";
 /**
  * Redeems a promotion for a user atomically
  * @param {string} idWhatsApp - The WhatsApp ID (document ID in user_profile)
- * @param {{ id: string, code: string, description: string, discount: string }} promotion - The promotion to redeem
+ * @param {{ id: string, code: string, number: string, company: string, type: string, expiration: Timestamp }} promotion - The promotion to redeem
  * @returns {Promise<void>}
  */
 export const redeemPromotion = async (idWhatsApp, promotion) => {
@@ -23,7 +23,7 @@ export const redeemPromotion = async (idWhatsApp, promotion) => {
     promosCount: FieldValue.increment(-1),
     promotion_history: FieldValue.arrayUnion({
       request_date: Timestamp.now(),
-      promotion_id: promotion.id,
+      promotion_id: promotion.number,
     }),
   });
 
