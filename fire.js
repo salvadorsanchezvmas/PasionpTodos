@@ -397,6 +397,9 @@ export const checkImage = async (idwhatsapp, image64, mimeType) => {
 
         console.log("AI Validation result:", validationResult);
 
+        // 3. Register the validation attempt in Firestore
+        await register_attempt(idwhatsapp, validationResult);
+
         if (validationResult.is_valid !== true) {
             console.log("Image validation failed:", validationResult.reason);
             return {
@@ -404,8 +407,6 @@ export const checkImage = async (idwhatsapp, image64, mimeType) => {
                 data: { message: validationResult.reason || "Image does not appear to contain chicken." }
             };
         }
-
-        await register_attempt(idwhatsapp, validationResult);
 
 //         // 2. Call Google Vision API with base64 image
 //         const visionResponse = await axios.post(
