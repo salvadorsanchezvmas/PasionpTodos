@@ -101,8 +101,8 @@ describe("ReadLastNMessages", () => {
 
     it("should return ok stat with failedLogs when data exists", async () => {
       const mockLogs = [
-        { msg_to_dev: "Error 1", msg_to_user: "Retry 1", time: "2026-04-27T10:00:00.000Z" },
-        { msg_to_dev: "Error 2", msg_to_user: "Retry 2", time: "2026-04-27T11:00:00.000Z" },
+        { is_valid: false, tag: "NOT_FOOD_OR_CHICKEN", msg_to_dev: "Error 1", msg_to_user: "Retry 1", time: "2026-04-27T10:00:00.000Z" },
+        { is_valid: true, tag: "VALID", msg_to_dev: "OK", msg_to_user: "Retry 2", time: "2026-04-27T11:00:00.000Z" },
       ];
       mockGetLastNMsgs.mockResolvedValue(mockLogs);
       const result = await ReadLastNMessages("123456789", 10);

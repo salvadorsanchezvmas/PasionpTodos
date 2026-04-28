@@ -2,18 +2,20 @@ import { Timestamp } from "firebase-admin/firestore";
 import db from "../../db/firebase.js";
 
 /**
- * Retrieves the last N failed analysis logs for a specific WhatsApp user from the database
+ * Retrieves the last N validation attempt logs for a specific WhatsApp user from the database
  * @param {string} idwhatsapp - The WhatsApp ID of the user (document ID)
  * @param {number} lastMsgs - Number of logs to retrieve
  * @returns {Promise<Array<{
+ *   is_valid: boolean,
+ *   tag: string,
  *   msg_to_dev: string,
  *   msg_to_user: string,
  *   time: string | null
- * }>>} Array of failed log entries
+ * }>>} Array of validation attempt log entries
  */
 export const getLastNMsgs = async (idwhatsapp, lastMsgs) => {
-  // Get document from failed_analysis_logs collection using idwhatsapp as document ID
-  const docRef = db.collection("failed_analysis_logs").doc(idwhatsapp);
+  // Get document from attempts_logs collection using idwhatsapp as document ID
+  const docRef = db.collection("attempts_logs").doc(idwhatsapp);
   const docSnap = await docRef.get();
 
   const lastNLogs = [];
@@ -27,6 +29,8 @@ export const getLastNMsgs = async (idwhatsapp, lastMsgs) => {
 
     slicedLogs.forEach((log) => {
       lastNLogs.push({
+        is_valid: log.is_valid ?? false,
+        tag: log.tag || "",
         msg_to_dev: log.msg_to_dev || "",
         msg_to_user: log.msg_to_user || "",
         time: log.time ? formatTimestamp(log.time) : null,

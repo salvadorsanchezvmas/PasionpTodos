@@ -40,7 +40,7 @@ Feature: Get Last N Messages
 2. Backend validates:
    - `idWhatsApp` is required and non-empty
    - `lastMsgs` is optional (default: 10), must be a positive integer
-3. Backend queries Firebase database for the user's messages
+3. Backend queries Firebase database for the user's messages in the `attempts_logs` collection
 4. Backend returns messages sorted by timestamp (newest first), limited to N
 5. Response format:
    ```json
@@ -48,9 +48,11 @@ Feature: Get Last N Messages
      "idWhatsApp": "123456789",
      "messages": [
        {
-         "id": "msg_001",
-         "content": "Hello",
-         "timestamp": "2026-04-27T10:30:00Z"
+         "is_valid": false,
+         "tag": "NOT_FOOD_OR_CHICKEN",
+         "msg_to_dev": "The image depicts a carton of mango juice, not chicken, and therefore fails to meet the requirement of containing a chicken-based food item.",
+         "msg_to_user": "La imagen debe mostrar alimentos o pollo; no se aceptarán imágenes que no estén relacionadas con comida.",
+         "time": "2026-04-28T07:19:29.000Z"
        }
      ],
      "count": 1
