@@ -5,11 +5,20 @@ sequenceDiagram
     title: Get Last N Failed Analysis Logs Flow
 
     participant Client as Client Application
+
+    box Business Rules
     participant UC as ReadLastNMessages<br/>use case
-    participant Check as checkUserExists()<br/>service
-    participant DB as getLastNMsgs()<br/>service
+    end
+
+    box Services
+    participant Check as checkUserExists()
+    participant SvcDB as getLastNMsgs()
+    end
+
+    box DB
     participant UP as Firestore<br/>user_profile
     participant AL as Firestore<br/>attempts_logs
+    end
 
     %% Main flow
     Client->>UC: ReadLastNMessages(idwhatsapp, lastMsgs)
@@ -42,15 +51,15 @@ sequenceDiagram
     end
 
     %% Step 4: Query database for logs
-    UC->>DB: getLastNMsgs(idwhatsapp, lastMsgs)
-    DB->>AL: Query attempts_logs collection
-    AL-->>DB: Return logs array
-    DB-->>UC: Return failedLogs array
+    UC->>SvcDB: getLastNMsgs(idwhatsapp, lastMsgs)
+    SvcDB->>AL: Query attempts_logs collection
+    AL-->>SvcDB: Return logs array
+    SvcDB-->>UC: Return failedLogs array
 
     %% Step 5: Return response
     UC-->>Client: { stat: "ok", data: { failedLogs }, count: n }
 
-    Note over UC,DB: Error handling: try-catch block returns { stat: "error", data: { message: error.message } }
+    Note over UC,SvcDB: Error handling: try-catch block returns { stat: "error", data: { message: error.message } }
 ```
 
 ## Component Overview

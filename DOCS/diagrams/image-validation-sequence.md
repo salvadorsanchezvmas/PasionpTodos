@@ -6,12 +6,31 @@ sequenceDiagram
 
     participant WA as WhatsApp User
     participant WH as Webhook Endpoint<br/>/pollo/phook
+
+    box External Services
     participant MG as Meta Graph API
-    participant BD as Backend<br/>validateImage()
-    participant FS as Firestore<br/>user_profile
-    participant AI as Google Gemini<br/>isValidImage()
     participant GCS as Google Cloud<br/>Storage
-    participant AL as Firestore<br/>attempts_logs
+    end
+
+    box AI Services
+    participant AI as Google Gemini<br/>isValidImage()
+    end
+
+    box Business Rules
+    participant BD as validateImage()<br/>use case
+    end
+
+    box Services
+    participant Today as getTodayValidAttempts()
+    participant Reg as register_attempt()
+    participant Album as updateAlbumData()
+    participant Upload as uploadImage()
+    end
+
+    box DB
+    participant FS_UP as Firestore<br/>user_profile
+    participant FS_AL as Firestore<br/>attempts_logs
+    end
 
     %% 1. Webhook Reception
     WA->>WH: Sends chicken dish photo
@@ -30,18 +49,19 @@ sequenceDiagram
     Note over BD: === validateImage use case started ===
 
     %% Step 1: Verify user exists
-    BD->>FS: Query user_profile.doc(idwhatsapp)
-    FS-->>BD: Returns user document OR not found
+    BD->>FS_UP: Query user_profile.doc(idwhatsapp)
+    FS_UP-->>BD: Returns user document OR not found
     alt User not found
         BD-->>WH: { stat: "error", message: "User {id} not found" }
     end
 
     %% Step 2: Check daily valid attempt limit
-    BD->>FS: getTodayValidAttempts(idwhatsapp)
-    FS-->>BD: Returns today's valid attempt count
+    BD->>Today: getTodayValidAttempts(idwhatsapp)
+    Today-->>BD: Returns today's valid attempt count
 
     alt Daily limit reached (>= 3)
-        BD->>AL: register_attempt(id, DAILY_LIMIT_EXCEEDED)
+        BD->>Reg: register_attempt(id, DAILY_LIMIT_EXCEEDED)
+        Reg->>FS_AL: Log attempt
         BD-->>WH: { stat: "error", message: "Has alcanzado el límite de 3 intentos diarios." }
     end
 
@@ -50,7 +70,8 @@ sequenceDiagram
     AI-->>BD: Returns { is_valid, tag, reason }
 
     %% Step 4: Register validation attempt
-    BD->>AL: register_attempt(idwhatsapp, validationResult)
+    BD->>Reg: register_attempt(idwhatsapp, validationResult)
+    Reg->>FS_AL: Log attempt
 
     %% Step 5: Handle invalid image
     alt Image is NOT valid
@@ -59,12 +80,15 @@ sequenceDiagram
 
     %% Step 6: Upload image to GCS
     Note over BD: Image is VALID
-    BD->>GCS: uploadImage(idwhatsapp, base64, mimeType)
-    GCS-->>BD: Returns public URL
+    BD->>Upload: uploadImage(idwhatsapp, base64, mimeType)
+    Upload->>GCS: Store image
+    GCS-->>Upload: Returns public URL
+    Upload-->>BD: Returns public URL
 
     %% Step 7: Update album with new stamp
-    BD->>FS: updateAlbumData(idwhatsapp, imageUrl)
-    FS-->>BD: Returns { newStamp, albumCount, redeem, promosCount, promoTriggered }
+    BD->>Album: updateAlbumData(idwhatsapp, imageUrl)
+    Album->>FS_UP: Update album stamps
+    Album-->>BD: Returns { newStamp, albumCount, redeem, promosCount, promoTriggered }
 
     %% Final response
     BD-->>WH: { stat: "ok", data: { newStamp, albumCount, redeem, ... } }
@@ -75,16 +99,37 @@ sequenceDiagram
 
 ## Component Overview
 
+### External Services / Adapters
 | Component               | Role                                                           |
 | ----------------------- | -------------------------------------------------------------- |
 | WhatsApp User           | Sends image via WhatsApp messaging                             |
 | Webhook Endpoint        | Receives and processes WhatsApp webhook events                 |
 | Meta Graph API          | Provides image download URL and image binary data              |
-| validateImage()         | Main use case orchestrator (src/application/validate_image.js) |
-| Firestore user_profile  | Stores user data, album stamps, redeem counter                 |
-| Google Gemini AI        | Validates if image contains prepared chicken dish              |
 | Google Cloud Storage    | Stores uploaded images with public URL                         |
-| Firestore attempts_logs | Logs all validation attempts with tags                         |
+
+### AI Services
+| Component               | Role                                                           |
+| ----------------------- | -------------------------------------------------------------- |
+| Google Gemini AI        | Validates if image contains prepared chicken dish              |
+
+### Business Rules
+| Component               | Role                                                           |
+| ----------------------- | -------------------------------------------------------------- |
+| validateImage()         | Main use case orchestrator (src/application/validate_image.js) |
+
+### Services
+| Component               | Role                                                           |
+| ----------------------- | -------------------------------------------------------------- |
+| getTodayValidAttempts() | Checks user's valid attempts for today                         |
+| register_attempt()      | Logs validation attempts to attempts_logs collection           |
+| updateAlbumData()       | Updates album stamps and promo logic                           |
+| uploadImage()           | Uploads image to Google Cloud Storage                           |
+
+### DB (Firestore Collections)
+| Component               | Role                                                           |
+| ----------------------- | -------------------------------------------------------------- |
+| user_profile            | Stores user data, album stamps, redeem counter                 |
+| attempts_logs           | Logs all validation attempts with tags                         |
 
 ## Validation Tags
 
