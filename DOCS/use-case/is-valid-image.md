@@ -65,6 +65,18 @@ Feature: Image Validation Workflow
     When the backend attempts to validate the image
     Then the request is rejected with error "User {idwhatsapp} not found"
     And no validation or stamp assignment occurs
+
+  Scenario: Daily attempt limit exceeded
+    Given the user has already made 3 valid attempts on the current day
+    When the user submits another image
+    Then the request is rejected with error "Daily attempt limit reached"
+    And no validation or stamp assignment occurs
+    And the user is informed to try again tomorrow
+
+  Scenario: Only valid attempts count toward daily limit
+    Given the user has 2 valid attempts and 1 rejected attempt today
+    When the user submits another image
+    Then the image is still processed (only valid attempts count)
 ```
 
 ---
@@ -210,16 +222,36 @@ Fields:
 
 ---
 
-## Tag to User Message Mapping
+## Rate Limiting Rules
 
-| Tag                                     | User Message (Spanish)                                                    |
-| --------------------------------------- | ------------------------------------------------------------------------- |
-| `VALID`                                 | ¡Imagen aprobada! Cumple perfectamente con todos nuestros lineamientos... |
-| `NOT_FOOD_OR_CHICKEN`                   | La imagen debe mostrar alimentos o pollo...                               |
-| `STOCK_OR_INTERNET_IMAGERY`             | La imagen no es válida si presenta marcas de agua...                      |
-| `AI_GENERATED_OR_MANIPULATED`           | No se permiten imágenes con indicios de edición excesiva...               |
-| `ADVERTISEMENTS_OR_COMMERCIAL_DISPLAYS` | Se rechazarán imágenes que estén diseñadas como anuncios...               |
-| `LIVE_ANIMALS`                          | No se aceptarán imágenes de animales vivos...                             |
+| Rule                     | Value                                              |
+| ------------------------ | -------------------------------------------------- |
+| Daily attempt limit      | 3 valid attempts per user per day                  |
+| Reset time               | Midnight (00:00) based on server timezone         |
+| Counted attempts         | Only **valid** attempts count toward limit        |
+| Rejected attempts        | Do NOT count toward daily limit                   |
+| Blocked action           | Image validation rejected, no stamp awarded        |
+| Error response message   | "Has alcanzado el límite de 3 intentos diarios. Intenta mañana." |
+
+### Daily Limit Technical Flow
+
+```javascript
+// Before processing image validation in checkImage():
+// 1. Query attempts_logs for today (midnight to now)
+// 2. Count attempts where is_valid === true
+// 3. If count >= 3 → reject with DAILY_LIMIT_EXCEEDED error
+// 4. Otherwise → proceed with AI validation
+```
+
+### Firestore: Daily Attempt Count Query
+
+```
+Collection: attempts_logs
+Document ID: {idwhatsapp}
+Query: logs[].time >= todayMidnight Timestamp
+Filter: logs[].is_valid === true
+Count: < 3 to allow attempt
+```
 
 ---
 

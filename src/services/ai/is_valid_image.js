@@ -1,4 +1,4 @@
-import ENV_VARS from "./config/ENV_VARS.js";
+import ENV_VARS from "../config/ENV_VARS.js";
 
 import { GoogleGenAI, ThinkingLevel, Type } from "@google/genai";
 
