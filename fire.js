@@ -11,7 +11,7 @@ import nodemailer from "nodemailer";
 import { Storage } from '@google-cloud/storage';
 import axios from 'axios';
 import { isValidImage } from './src/services/is_valid_image.js';
-import { recordFailedAttempt } from './src/services/db/record_failed_attempt/record_failed_attempt.js';
+import { register_attempt } from './src/services/db/register_attempt/register_attempt.js';
 
 import pdf from "pdf-creator-node";
 import ENV_VARS from './src/services/config/ENV_VARS.js';
@@ -399,12 +399,13 @@ export const checkImage = async (idwhatsapp, image64, mimeType) => {
 
         if (validationResult.is_valid !== true) {
             console.log("Image validation failed:", validationResult.reason);
-            await recordFailedAttempt(idwhatsapp, validationResult);
             return {
                 stat: "error",
                 data: { message: validationResult.reason || "Image does not appear to contain chicken." }
             };
         }
+
+        await register_attempt(idwhatsapp, validationResult);
 
 //         // 2. Call Google Vision API with base64 image
 //         const visionResponse = await axios.post(
