@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import ENV_VARS from "../../config/ENV_VARS.js";
+import ENV_VARS from "../config/ENV_VARS.js";
 
 const transporter = nodemailer.createTransport({
   host: "mail.polloparatodos.com",
