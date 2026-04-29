@@ -1,7 +1,9 @@
 import { checkUserExists } from "../services/db/user_profile/check_user_exists.js";
 import { checkPromosCount } from "../services/db/user_profile/check_promos_count.js";
+import { getUserProfile } from "../services/db/user_profile/get_user_profile.js";
 import { getAvailablePromotion } from "../services/db/promotion/get_available_promotion.js";
 import { redeemPromotion } from "../services/db/promotion/redeem_promotion.js";
+import { sendCouponEmail } from "../services/email/send_coupon_email.js";
 
 const ERROR_MESSAGES = {
   INVALID_ID: "ID de usuario inválido",
@@ -123,13 +125,47 @@ export const GetPromotion = async (idWhatsApp) => {
       };
     }
 
-    // 5. Redeem promotion (atomic operation)
+    // 5. Get user profile for email before redeeming
+    console.log(`GetPromotion: Getting user profile for email`);
+    const userProfile = await getUserProfile(idWhatsApp);
+
+    if (!userProfile || !userProfile.email) {
+      console.log(`GetPromotion: User ${idWhatsApp} has no email`);
+      return {
+        stat: "error",
+        data: {
+          message: "No tenemos tu correo electrónico registrado. Contáctanos para obtener tu cupón.",
+        },
+      };
+    }
+
+    // 6. Redeem promotion (atomic operation)
     console.log(
       `GetPromotion: Redeeming promotion ${promotion.id} for user ${idWhatsApp}`,
     );
     await redeemPromotion(idWhatsApp, promotion);
 
-    // 6. Return success response
+    // 7. Send coupon via email
+    console.log(
+      `GetPromotion: Sending coupon email to ${userProfile.email}`,
+    );
+    try {
+      await sendCouponEmail(
+        userProfile.email,
+        userProfile.name,
+        promotion.id,
+        promotion.code,
+        promotion.company,
+        promotion.type,
+        promotion.expiration
+      );
+    } catch (emailError) {
+      console.error("GetPromotion: Failed to send coupon email:", emailError);
+      // Email failure should not rollback the redemption
+      // Just log the error and continue
+    }
+
+    // 8. Return success response
     return {
       stat: "ok",
       data: {
