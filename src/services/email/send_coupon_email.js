@@ -11,6 +11,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+console.log(ENV_VARS.EMAIL_USER, ENV_VARS.EMAIL_PASS );
+
 /**
  * Sends a coupon promotion email to the user
  * @param {string} mailadd - The recipient email address
